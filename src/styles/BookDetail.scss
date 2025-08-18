@@ -1,0 +1,115 @@
+.book-detail-container {
+  position: relative;
+  display: flex;
+  gap: 30px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+  
+  .book-image-container {
+    position: fixed;
+    width: 280px;
+    max-width: 300px;
+    height: auto;
+    margin-top: 8px;
+    
+    @media (max-width: 768px) {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    
+        .book-image {
+            width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .book-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            
+            button {
+                width: 100%;
+            }
+            
+            .favorite-button {
+                &.active {
+                color: #ff4d4f;
+                border-color: #ff4d4f;
+                }
+            }
+        }
+    }
+  
+  .content-container {
+    flex: 1;
+    margin-left: 330px;
+    
+    @media (max-width: 768px) {
+      margin-left: 0;
+    }
+    
+    .book-info {
+      .book-header {
+        margin-bottom: 16px;
+        
+        h2 {
+          margin-bottom: 4px;
+        }
+      }
+      
+      .book-author {
+        margin-bottom: 12px;
+        color: #555;
+      }
+      
+      .book-rating {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        
+        .rating-count {
+          font-size: 18px;
+          font-weight: bold;
+          margin: 0 8px;
+        }
+        
+        .reviews-count {
+          color: #666;
+        }
+      }
+      
+      .book-description {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+      
+      .book-categories {
+        margin-bottom: 20px;
+      }
+      
+      .book-details {
+        background-color: #f9f9f9;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+      }
+    }
+  }
+}

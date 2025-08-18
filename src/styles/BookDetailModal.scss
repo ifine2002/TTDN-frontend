@@ -1,0 +1,102 @@
+// BookDetailModal Styles
+.book-modal-content {
+    .book-header {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+      
+      .book-image-container {
+        width: 180px;
+        flex-shrink: 0;
+        
+        @media (max-width: 768px) {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+        
+        .book-modal-image {
+          width: 100%;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          border-radius: 4px;
+          max-height: 270px;
+          object-fit: cover;
+          
+          @media (max-width: 768px) {
+            width: auto;
+            max-width: 150px;
+          }
+        }
+      }
+      
+      .book-info {
+        flex: 1;
+        
+        .book-rating {
+          display: flex;
+          align-items: center;
+          margin: 10px 0;
+          
+          .rating-count {
+            margin: 0 5px;
+            font-weight: bold;
+          }
+          
+          .reviews-count {
+            color: #666;
+          }
+        }
+        
+        .book-description {
+          margin-top: 10px;
+        }
+      }
+    }
+    
+    .book-additional-info {
+      margin: 15px 0;
+    }
+    
+    .loading-container,
+    .error-container {
+      text-align: center;
+      padding: 40px 0;
+      font-size: 16px;
+    }
+  }
+  
+  // Clickable elements
+  .clickable-rating {
+    cursor: pointer;
+    
+    &:hover {
+      .ant-rate-star-first,
+      .ant-rate-star-second {
+        color: #faad14 !important;
+      }
+    }
+  }
+  
+  .clickable-text {
+    cursor: pointer;
+    
+    &:hover {
+      text-decoration: underline;
+      color: #1890ff;
+    }
+  }
+  
+  .view-all-reviews-button {
+    margin-top: 15px;
+  }
+
+.modal-open {
+  height: 100vh;
+  overflow-y: scroll;
+  position: fixed;
+  width: 100%;
+}

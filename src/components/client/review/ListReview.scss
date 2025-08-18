@@ -1,0 +1,153 @@
+.list-review {
+  margin-top: 40px;
+  
+  .header-list-review {
+    margin-bottom: 24px;
+    
+    .ant-divider {
+      font-size: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+  }
+  
+  .rating-statistics {
+    margin-bottom: 32px;
+    
+    .rating-average {
+      text-align: center;
+      
+      &-number {
+        font-size: 48px;
+        font-weight: 600;
+        color: #333;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      
+      &-stars {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .rating-count-text {
+        color: #666;
+        font-size: 14px;
+      }
+    }
+    
+    .star-row {
+      margin-bottom: 8px;
+      
+      .star-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        
+        .star-number {
+          font-weight: 500;
+        }
+      }
+      
+      .star-progress-container {
+        background-color: #f0f0f0;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        
+        .star-progress-bar {
+          height: 100%;
+          background-color: #faad14;
+          transition: width 0.3s ease;
+        }
+      }
+      
+      .star-percentage {
+        padding-left: 12px;
+        color: #666;
+        font-size: 14px;
+        
+        .star-count {
+          margin-left: 4px;
+          color: #999;
+        }
+      }
+    }
+  }
+  
+  .review-list-container {
+    .review-list-item {
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #fff;
+      margin-bottom: 16px;
+      border: 1px solid #f0f0f0;
+      
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+      
+      .review-item {
+        display: flex;
+        flex-direction: column;
+        
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+          width: 100%;
+          
+          .user-details {
+            .user-name {
+              font-weight: 500;
+              color: #333;
+            }
+            
+            .review-date {
+              font-size: 12px;
+              color: #999;
+            }
+          }
+        }
+        
+        .review-content {
+          width: 100%;
+          padding-left: 52px; /* Căn chỉnh với avatar (40px + 12px gap) */
+          
+          .review-rating {
+            margin-bottom: 8px;
+            
+            .review-stars {
+              font-size: 16px;
+            }
+          }
+          
+          .review-comment {
+            color: #333;
+            line-height: 1.6;
+          }
+        }
+      }
+    }
+    
+    .view-more-container {
+      text-align: center;
+      margin-top: 24px;
+      
+      .view-more-button {
+        font-size: 16px;
+      }
+    }
+    
+    .no-reviews {
+      text-align: center;
+      padding: 40px 0;
+      color: #666;
+      
+      .empty-reviews-message {
+        font-size: 16px;
+      }
+    }
+  }
+}
