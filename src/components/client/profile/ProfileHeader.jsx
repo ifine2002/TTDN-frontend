@@ -1,51 +1,51 @@
-import { Card, Avatar, Button, Typography } from 'antd';
+import { Card, Avatar, Button, Typography, message } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { calUnfollow, callCreateFollow } from '../../../api/services';
 
 const { Title, Text } = Typography;
 
-const ProfileHeader = ({ 
-    userData, 
-    isFollowing, 
+const ProfileHeader = ({
+    userData,
+    isFollowing,
     setIsFollowing,
-    showFollowersModal, 
-    showFollowingModal, 
+    showFollowersModal,
+    showFollowingModal,
     headerRef,
     currentUser
 }) => {
     const toggleFollow = async () => {
-        try {
-            if (isFollowing) {
-                const follow = {
-                    followerId: currentUser.id,
-                    followingId: userData.id
-                };
-                const res = await calUnfollow(follow);
-                setIsFollowing(false);
-            } else {
-                const follow = {
-                    followerId: currentUser.id,
-                    followingId: userData.id
-                };
-                const res = await callCreateFollow(follow);
-                setIsFollowing(true);
-            }
-        } catch (error) {
-            console.error("Lỗi khi thực hiện follow/unfollow:", error);
+        if (!currentUser || !currentUser.id) {
+            message.warning('Bạn cần đăng nhập để thực hiện thao tác này');
+            return;
+        }
+        if (isFollowing) {
+            const follow = {
+                followerId: currentUser.id,
+                followingId: userData.id
+            };
+            const res = await calUnfollow(follow);
+            setIsFollowing(false);
+        } else {
+            const follow = {
+                followerId: currentUser.id,
+                followingId: userData.id
+            };
+            const res = await callCreateFollow(follow);
+            setIsFollowing(true);
         }
     };
 
     return (
         <div style={{ height: 'auto', minHeight: '160px' }}>
-            <Card 
+            <Card
                 className="mb-6 shadow-md profile-user-header"
                 ref={headerRef}
             >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-2 flex justify-center items-center">
-                        <Avatar 
-                            src={userData.image} 
-                            icon={!userData.image && <UserOutlined />} 
+                        <Avatar
+                            src={userData.image}
+                            icon={!userData.image && <UserOutlined />}
                             size={100}
                             className="border border-gray-200"
                         />
@@ -64,7 +64,7 @@ const ProfileHeader = ({
                         </div>
                     </div>
                     <div className="md:col-span-3 flex items-center justify-center md:justify-end">
-                        <Button 
+                        <Button
                             onClick={toggleFollow}
                             className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-base transition 
                                         ${isFollowing === false ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-600'}`}

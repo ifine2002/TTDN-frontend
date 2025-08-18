@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { callFetchUserProfile, callGetAllPostOfUser, callFetchAllBookFavoriteOfUser, calUnfollow, callCreateFollow } from "../../api/services";
+import { callFetchUserProfile, callGetAllPostOfUser, callFetchAllBookFavoriteOfUser, } from "../../api/services";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spin, Empty } from "antd";
 import queryString from 'query-string';
@@ -27,7 +27,7 @@ const ProfilePage = () => {
     const isLoading = useRef(false);
     const headerRef = useRef(null);
     const dispatch = useAppDispatch();
-    
+
     // State cho danh sách bài viết
     const [books, setBooks] = useState([]);
     const [pagination, setPagination] = useState({
@@ -36,7 +36,7 @@ const ProfilePage = () => {
         totalElements: 0,
         totalPages: 0
     });
-    
+
     // WebSocket client
     const [stompClient, setStompClient] = useState(null);
 
@@ -53,10 +53,11 @@ const ProfilePage = () => {
 
     useEffect(() => {
         if (user && user.id && id && id.toString() === user.id.toString()) {
-            console.log("Redirecting to my-profile");
             navigate('/my-profile', { replace: true });
         }
-        dispatch(fetchFollowing({ query: '' }));
+        if (user && user.id) {
+            dispatch(fetchFollowing({ query: '' }));
+        }
     }, [id, user, navigate, dispatch]);
 
     useEffect(() => {
@@ -70,10 +71,10 @@ const ProfilePage = () => {
             try {
                 setLoading(true);
                 const res = await callFetchUserProfile(id);
-                console.log("check res", res);
                 if (res && res.data) {
                     setUserData(res.data);
-                    if (res.data.follower) {
+                    // Nếu đã đăng nhập mới kiểm tra follow
+                    if (res.data.follower && user?.id) {
                         const isFollowerUser = res.data.follower.some(follower => follower.id === user.id);
                         setIsFollowing(isFollowerUser);
                     }
@@ -85,9 +86,7 @@ const ProfilePage = () => {
             }
         };
 
-        if (user?.id) {
-            fetchUserProfile();
-        }
+        fetchUserProfile();
     }, [id, user?.id]);
 
     // WebSocket setup
@@ -180,7 +179,7 @@ const ProfilePage = () => {
         console.log(`Starting fetch for page ${pageNumber}...`);
         isLoading.current = true;
         setLoading(true);
-        
+
         try {
             const pageForApi = pageNumber - 1;
             const params = {
@@ -194,13 +193,13 @@ const ProfilePage = () => {
             const response = await callGetAllPostOfUser(userData.email, query);
             if (response && response.data) {
                 const { result, totalPages, totalElements } = response.data;
-                
+
                 if (pageNumber === 1) {
                     setBooks(result || []);
                 } else {
                     setBooks(prevBooks => [...prevBooks, ...(result || [])]);
                 }
-                
+
                 setPagination({
                     page: pageNumber,
                     pageSize: pagination.pageSize,
@@ -234,7 +233,7 @@ const ProfilePage = () => {
         handleScroll();
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('resize', handleScroll);
-        
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             window.removeEventListener('resize', handleScroll);
@@ -248,23 +247,23 @@ const ProfilePage = () => {
             const originalBodyOverflow = window.getComputedStyle(document.body).overflow;
             const scrollbarWidth = getScrollbarWidth();
             const bodyPaddingRightValue = parseInt(originalBodyPaddingRight, 10) || 0;
-    
+
             document.body.style.overflow = 'hidden';
             document.body.style.paddingRight = `${bodyPaddingRightValue + scrollbarWidth}px`;
-    
+
             const header = document.querySelector('.header-section');
             let originalHeaderPaddingRight = '0px';
-            
+
             if (header) {
                 originalHeaderPaddingRight = window.getComputedStyle(header).paddingRight;
                 const currentHeaderPadding = parseInt(originalHeaderPaddingRight, 10) || 0;
                 header.style.paddingRight = `${currentHeaderPadding + scrollbarWidth}px`;
             }
-    
+
             return () => {
                 document.body.style.overflow = originalBodyOverflow;
                 document.body.style.paddingRight = originalBodyPaddingRight;
-    
+
                 if (header) {
                     header.style.paddingRight = originalHeaderPaddingRight;
                 }
@@ -332,7 +331,7 @@ const ProfilePage = () => {
         }
 
         const nextPage = pagination.page + 1;
-        
+
         if (nextPage <= pagination.totalPages) {
             const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             fetchBooks(nextPage).then(() => {
@@ -390,7 +389,7 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="max-w-6xl p-4">
+        <div className="max-w-full p-4">
             <ProfileHeader
                 userData={userData}
                 isFollowing={isFollowing}

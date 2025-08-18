@@ -10,7 +10,6 @@ const ResetPasswordPage = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    console.log("check token", token);
     const onFinish = async (values) => {
         setLoading(true);
         try {
@@ -28,7 +27,7 @@ const ResetPasswordPage = () => {
                 setTimeout(() => {
                     navigate('/login');
                 }, 2000);
-            } else if(res && res.status === 400){
+            } else if (res && res.status === 400) {
                 notification.error({
                     message: 'Có lỗi xảy ra',
                     description: res.message,

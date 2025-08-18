@@ -17,7 +17,7 @@ const UploadBookPage = () => {
     const navigate = useNavigate();
     const user = useAppSelector(state => state.account.user);
     const [form] = Form.useForm();
-    
+
     // State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -33,7 +33,6 @@ const UploadBookPage = () => {
     const fetchCategories = async () => {
         try {
             const res = await callFetchCategoriesUpload('');
-            console.log(res);
             if (res && res.data) {
                 setCategories(res.data.result);
             }
@@ -108,13 +107,13 @@ const UploadBookPage = () => {
     const handleSubmit = async (values) => {
         try {
             setLoading(true);
-            
+
             if (fileList.length === 0) {
                 message.error('Vui lòng tải lên ảnh bìa sách!');
                 setLoading(false);
                 return;
             }
-            
+
             const formData = {
                 name: values.name,
                 description: values.description,
@@ -126,7 +125,7 @@ const UploadBookPage = () => {
                 categoryIds: values.categoryIds,
                 image: fileList[0]?.originFileObj,
             };
-            
+
             const res = await callUploadBook(formData);
             if (res && res.data) {
                 message.success('Tạo sách mới thành công, đang chờ phê duyệt!');
@@ -142,7 +141,7 @@ const UploadBookPage = () => {
                         body: JSON.stringify(notification)
                     });
                 }
-                
+
                 form.resetFields();
                 setFileList([]);
                 setIsModalOpen(false);
@@ -163,33 +162,33 @@ const UploadBookPage = () => {
             <div className="upload-book-content">
                 <div className="upload-header">
                     <Title level={2}>Thư viện sách của bạn</Title>
-                    <Button 
-                        type="primary" 
-                        icon={<CloudUploadOutlined />} 
+                    <Button
+                        type="primary"
+                        icon={<CloudUploadOutlined />}
                         onClick={showModal}
                     >
                         Tải sách mới
                     </Button>
                 </div>
-                
+
                 <div className="upload-description">
                     <Text>Chia sẻ những cuốn sách yêu thích của bạn với cộng đồng. Sách của bạn sẽ được hiển thị sau khi được quản trị viên phê duyệt.</Text>
                 </div>
-                
+
                 {/* Modal tạo sách mới */}
                 <Modal
                     title={
                         <div className="modal-header">
-                            <Button 
-                                type="text" 
+                            <Button
+                                type="text"
                                 onClick={handleCancel}
                                 className="back-button"
                             >
                                 ←
                             </Button>
                             <div className="modal-title">Tạo bài viết mới</div>
-                            <Button 
-                                type="link" 
+                            <Button
+                                type="link"
                                 onClick={() => form.submit()}
                                 loading={loading}
                                 className="share-button"
@@ -211,10 +210,10 @@ const UploadBookPage = () => {
                         <div className="upload-image-container">
                             {fileList.length > 0 ? (
                                 <div className="image-preview">
-                                    <Button 
-                                        className="delete-image-button" 
-                                        icon={<CloseOutlined />} 
-                                        shape="circle" 
+                                    <Button
+                                        className="delete-image-button"
+                                        icon={<CloseOutlined />}
+                                        shape="circle"
                                         danger
                                         onClick={() => setFileList([])}
                                     />
@@ -241,17 +240,17 @@ const UploadBookPage = () => {
                                 </Upload>
                             )}
                         </div>
-                        
+
                         <div className="book-form-container">
                             <div className="user-info">
-                            <Avatar 
-                                src={user.image} 
-                                icon={<UserOutlined />} 
-                                size={40}
-                            />    
+                                <Avatar
+                                    src={user.image}
+                                    icon={<UserOutlined />}
+                                    size={40}
+                                />
                                 <div className="username">{user.fullName}</div>
                             </div>
-                            
+
                             <Form
                                 form={form}
                                 layout="vertical"
@@ -264,61 +263,61 @@ const UploadBookPage = () => {
                                 >
                                     <Input placeholder="Tên sách" />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="author"
                                     rules={[{ required: true, message: 'Vui lòng nhập tên tác giả' }]}
                                 >
                                     <Input placeholder="Tác giả" />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="description"
                                     rules={[{ required: true, message: 'Vui lòng nhập mô tả sách' }]}
                                 >
-                                    <TextArea 
-                                        placeholder="Mô tả sách..." 
+                                    <TextArea
+                                        placeholder="Mô tả sách..."
                                         autoSize={{ minRows: 3, maxRows: 6 }}
                                     />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="publishedDate"
                                     rules={[{ required: true, message: 'Vui lòng chọn ngày xuất bản' }]}
                                 >
-                                    <DatePicker 
+                                    <DatePicker
                                         placeholder="Ngày xuất bản"
                                         style={{ width: '100%' }}
                                         format="DD/MM/YYYY"
                                     />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="language"
                                     rules={[{ required: true, message: 'Vui lòng chọn ngôn ngữ' }]}
                                 >
                                     <Input placeholder="Language" />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="bookFormat"
                                     rules={[{ required: true, message: 'Vui lòng chọn định dạng sách' }]}
                                 >
                                     <Input placeholder="Định dạng" />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="bookSaleLink"
                                 >
                                     <Input placeholder="Liên kết mua sách" />
                                 </Form.Item>
-                                
+
                                 <Form.Item
                                     name="categoryIds"
                                     rules={[{ required: true, message: 'Vui lòng chọn ít nhất một danh mục' }]}
                                 >
-                                    <Select 
-                                        placeholder="Chọn danh mục" 
+                                    <Select
+                                        placeholder="Chọn danh mục"
                                         mode="multiple"
                                     >
                                         {categories.map(category => (
@@ -328,12 +327,12 @@ const UploadBookPage = () => {
                                         ))}
                                     </Select>
                                 </Form.Item>
-                                
+
                                 <div className="form-note">
                                     <Text type="secondary">Lưu ý: Sách của bạn sẽ được hiển thị sau khi được quản trị viên phê duyệt.</Text>
                                 </div>
                             </Form>
-                            
+
                         </div>
                     </div>
                 </Modal>

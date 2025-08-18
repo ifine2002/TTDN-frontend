@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Typography, Rate, Button, Divider, Input, message} from 'antd';
+import { Row, Col, Typography, Rate, Button, Divider, Input, message } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { callGetBookDetailById } from '../../../api/services';
 import { useParams } from 'react-router-dom';
@@ -30,7 +30,7 @@ const BookDetail = () => {
 
   const favoriteBooks = useAppSelector(state => state.favorite.favoriteBooks);
   const isFavorite = favoriteBooks.includes(book?.id);
-  
+
   const fetchBookDetail = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
@@ -52,7 +52,7 @@ const BookDetail = () => {
   }, [id, fetchBookDetail]);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.id !== '') {
       dispatch(fetchFavorite({ query: '' }));
     }
   }, [user, dispatch]);
@@ -84,14 +84,14 @@ const BookDetail = () => {
     });
 
     client.onConnect = () => {
-      
+
       client.subscribe(`/topic/reviews/${id}`, (message) => {
         if (message.body) {
           const notification = JSON.parse(message.body);
           console.log("BookDetail nhận thông báo WebSocket:", notification);
-          
+
           const { action, data, timestamp } = notification;
-          
+
           switch (action) {
             case "create":
             case "update":
@@ -103,7 +103,7 @@ const BookDetail = () => {
             default:
               console.warn("Không xác định được action:", action);
           }
-          
+
           fetchBookDetail(false);
         }
       });
@@ -125,10 +125,10 @@ const BookDetail = () => {
 
   const handleReviewCreateOrUpdate = (reviewData) => {
     console.log("Xử lý cập nhật review:", reviewData);
-    
+
     setListReview(prevReviews => {
       const existingReviewIndex = prevReviews.findIndex(r => r.userId === reviewData.userId);
-      
+
       if (existingReviewIndex !== -1) {
         const updatedReviews = [...prevReviews];
         updatedReviews[existingReviewIndex] = {
@@ -142,7 +142,7 @@ const BookDetail = () => {
         return [reviewData, ...prevReviews];
       }
     });
-    
+
     if (user?.id && reviewData.userId === user.id) {
       setUserReview(reviewData);
       setRating(reviewData.stars || 0);
@@ -152,11 +152,11 @@ const BookDetail = () => {
 
   const handleReviewDelete = (userId) => {
     console.log("Xử lý xóa review của user:", userId);
-    
-    setListReview(prevReviews => 
+
+    setListReview(prevReviews =>
       prevReviews.filter(review => review.userId !== userId)
     );
-    
+
     if (user?.id && user.id === userId) {
       setUserReview(null);
       setRating(0);
@@ -174,7 +174,7 @@ const BookDetail = () => {
 
   const toggleFavorite = async () => {
     try {
-      if (!user) {
+      if (!user || user.id === '') {
         message.warning('Vui lòng đăng nhập để yêu thích sách');
         return;
       }
@@ -188,7 +188,7 @@ const BookDetail = () => {
         await dispatch(likeBook(book.id));
         message.success('Đã thêm vào danh sách yêu thích');
       }
-      
+
       // Sau khi thao tác thành công, cập nhật lại danh sách sách yêu thích
       dispatch(fetchFavorite({ query: '' }));
     } catch (error) {
@@ -203,18 +203,18 @@ const BookDetail = () => {
       <div className="book-image-container">
         <img src={book.image} alt={book.name} className="book-image" />
         <div className="book-actions">
-          <Button 
-            type="primary" 
-            size="large" 
+          <Button
+            type="primary"
+            size="large"
             icon={<ShoppingCartOutlined />}
             href={book.bookSaleLink}
             target="_blank"
           >
             Tìm mua
           </Button>
-          <Button 
-            size="large" 
-            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} 
+          <Button
+            size="large"
+            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
             onClick={toggleFavorite}
             className={isFavorite ? 'favorite-button active' : 'favorite-button'}
           >
@@ -231,20 +231,20 @@ const BookDetail = () => {
               <Text>Tác giả: {book.author}</Text>
             </div>
           </div>
-          
+
           <div className="book-rating">
             <Rate allowHalf disabled value={stars.averageRating} />
             <Text className="rating-count">{stars.averageRating.toFixed(1)}</Text>
             <Text className="reviews-count">({stars.ratingCount} đánh giá)</Text>
           </div>
-          
+
           <Paragraph className="book-description">
             {book.description}
           </Paragraph>
           <div className='book-categories'>
-            <Text><span style={{'fontWeight': 'bold'}}>Thể loại:</span> {book.categories?.map(cat => cat.name).join(', ')}</Text>
+            <Text><span style={{ 'fontWeight': 'bold' }}>Thể loại:</span> {book.categories?.map(cat => cat.name).join(', ')}</Text>
           </div>
-          
+
           <div className="book-details">
             <Row gutter={[16, 16]}>
               <Col span={8}>
@@ -261,7 +261,7 @@ const BookDetail = () => {
               </Col>
             </Row>
           </div>
-          
+
           <Divider />
           <ActionReview
             rating={rating}

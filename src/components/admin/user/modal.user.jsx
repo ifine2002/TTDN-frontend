@@ -16,12 +16,12 @@ const ModalUser = (props) => {
 
     useEffect(() => {
         setIsDeleteImage(false);
-        
+
         if (dataInit?.id) {
             if (dataInit.role) {
                 setRoles([
                     {
-                        label: dataInit.role?.name, 
+                        label: dataInit.role?.name,
                         value: dataInit.role?.id,
                         key: dataInit.role?.id,
                     }
@@ -53,7 +53,7 @@ const ModalUser = (props) => {
         if (fileList.length > 0 && fileList[0].originFileObj) {
             setIsDeleteImage(false);
         }
-        
+
         setFileList(fileList);
     };
 
@@ -91,20 +91,20 @@ const ModalUser = (props) => {
                     status,
                     roleId: role.value
                 };
-                
+
                 if (fileList.length > 0 && fileList[0].originFileObj) {
                     user.image = fileList[0].originFileObj;
                 }
-                
+
                 if (isDeleteImage) {
                     user.deleteImage = true;
                 }
-                
+
                 const res = await callUpdateUser(user, dataInit.id);
                 message.success("Cập nhật user thành công");
                 handleReset();
                 reloadTable();
-                    
+
             } else {
                 //create
                 const user = {
@@ -118,17 +118,17 @@ const ModalUser = (props) => {
                     status,
                     roleId: role.value,
                 };
-                
+
                 if (fileList.length > 0 && fileList[0].originFileObj) {
                     user.image = fileList[0].originFileObj;
                 }
-                
+
                 const res = await callCreateUser(user);
                 message.success("Thêm mới user thành công");
                 handleReset();
                 reloadTable();
             }
-        } catch(error){
+        } catch (error) {
             let errorMessage = 'Có lỗi xảy ra';
             if (error.response) {
                 if (error.response.data?.message) {
@@ -145,7 +145,7 @@ const ModalUser = (props) => {
             } else {
                 errorMessage = error.message;
             }
-            
+
             notification.error({
                 message: 'Có lỗi xảy ra',
                 description: errorMessage,
@@ -166,7 +166,6 @@ const ModalUser = (props) => {
 
     async function fetchRoleList(name) {
         const res = await callFetchRole(`page=0&size=100&name=/${name}/i`);
-        console.log(res);
         if (res && res.data) {
             const list = res.data.result;
             const temp = list.map(item => {
@@ -179,7 +178,7 @@ const ModalUser = (props) => {
         } else return [];
     }
 
-    
+
 
     return (
         <>
@@ -226,7 +225,7 @@ const ModalUser = (props) => {
                             label="Password"
                             name="password"
                             rules={[{ required: dataInit?.id ? false : true, message: 'Vui lòng không bỏ trống' }]}
-                            placeholder={dataInit?.id  ? " " : "Nhập password"}
+                            placeholder={dataInit?.id ? " " : "Nhập password"}
                         />
                     </Col>
                     <Col lg={6} md={6} sm={24} xs={24}>

@@ -34,7 +34,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
 
   const fetchBookDetail = useCallback(async (showLoading = true) => {
     if (!bookId) return;
-    
+
     try {
       if (showLoading) setLoading(true);
       const response = await callGetBookDetailById(bookId);
@@ -85,14 +85,14 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
 
     client.onConnect = () => {
       console.log(`BookDetailModal: Đã kết nối WebSocket cho book ${bookId}`);
-      
+
       client.subscribe(`/topic/reviews/${bookId}`, (message) => {
         if (message.body) {
           const notification = JSON.parse(message.body);
           console.log("BookDetailModal nhận thông báo WebSocket:", notification);
-          
+
           const { action, data, timestamp } = notification;
-          
+
           switch (action) {
             case "create":
             case "update":
@@ -104,7 +104,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
             default:
               console.warn("Không xác định được action:", action);
           }
-          
+
           fetchBookDetail(false);
         }
       });
@@ -127,10 +127,10 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
 
   const handleReviewCreateOrUpdate = (reviewData) => {
     console.log("BookDetailModal: Xử lý cập nhật review:", reviewData);
-    
+
     setListReview(prevReviews => {
       const existingReviewIndex = prevReviews.findIndex(r => r.userId === reviewData.userId);
-      
+
       if (existingReviewIndex !== -1) {
         const updatedReviews = [...prevReviews];
         updatedReviews[existingReviewIndex] = {
@@ -149,7 +149,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
         return [reviewData, ...prevReviews];
       }
     });
-    
+
     if (reviewData.userId === user?.id) {
       setUserReview(reviewData);
       setRating(reviewData.stars || 0);
@@ -159,17 +159,17 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
 
   const handleReviewDelete = (userId) => {
     console.log("BookDetailModal: Xử lý xóa review của user:", userId);
-    
-    setListReview(prevReviews => 
+
+    setListReview(prevReviews =>
       prevReviews.filter(review => review.userId !== userId)
     );
-    
+
     // Cập nhật stars object
     setStars(prevStars => ({
       ...prevStars,
       ratingCount: Math.max(0, prevStars.ratingCount - 1)
     }));
-    
+
     if (user?.id === userId) {
       setUserReview(null);
       setRating(0);
@@ -179,37 +179,37 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
 
   useEffect(() => {
     if (visible) {
-        // Lấy giá trị ban đầu
-        const originalBodyPaddingRight = window.getComputedStyle(document.body).paddingRight;
-        const originalBodyOverflow = window.getComputedStyle(document.body).overflow;
-        const scrollbarWidth = getScrollbarWidth();
-        const bodyPaddingRightValue = parseInt(originalBodyPaddingRight, 10) || 0;
+      // Lấy giá trị ban đầu
+      const originalBodyPaddingRight = window.getComputedStyle(document.body).paddingRight;
+      const originalBodyOverflow = window.getComputedStyle(document.body).overflow;
+      const scrollbarWidth = getScrollbarWidth();
+      const bodyPaddingRightValue = parseInt(originalBodyPaddingRight, 10) || 0;
 
-        // Thêm padding cho body
-        document.body.style.overflow = 'hidden';
-        document.body.style.paddingRight = `${bodyPaddingRightValue + scrollbarWidth}px`;
+      // Thêm padding cho body
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${bodyPaddingRightValue + scrollbarWidth}px`;
 
-        // Thêm padding cho header
-        const header = document.querySelector('.header-section');
-        let originalHeaderPaddingRight = '0px';
-        
+      // Thêm padding cho header
+      const header = document.querySelector('.header-section');
+      let originalHeaderPaddingRight = '0px';
+
+      if (header) {
+        originalHeaderPaddingRight = window.getComputedStyle(header).paddingRight;
+        const currentHeaderPadding = parseInt(originalHeaderPaddingRight, 10) || 0;
+        header.style.paddingRight = `${currentHeaderPadding + scrollbarWidth}px`;
+      }
+
+      // Hàm cleanup
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.body.style.paddingRight = originalBodyPaddingRight;
+
         if (header) {
-            originalHeaderPaddingRight = window.getComputedStyle(header).paddingRight;
-            const currentHeaderPadding = parseInt(originalHeaderPaddingRight, 10) || 0;
-            header.style.paddingRight = `${currentHeaderPadding + scrollbarWidth}px`;
+          header.style.paddingRight = originalHeaderPaddingRight;
         }
-
-        // Hàm cleanup
-        return () => {
-            document.body.style.overflow = originalBodyOverflow;
-            document.body.style.paddingRight = originalBodyPaddingRight;
-
-            if (header) {
-                header.style.paddingRight = originalHeaderPaddingRight;
-            }
-        };
+      };
     }
-}, [visible]);
+  }, [visible]);
 
 
   // Xử lý khi đóng modal
@@ -265,21 +265,21 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
               <div className="book-author">
                 <Text>Tác giả: {book.author}</Text>
               </div>
-              
+
               <div className="book-rating">
                 <Rate allowHalf disabled value={stars?.averageRating || 0} />
                 <Text className="rating-count">{stars?.averageRating?.toFixed(1) || 0}</Text>
                 <Text className="reviews-count">({stars?.ratingCount || 0} đánh giá)</Text>
               </div>
-              
+
               <Paragraph className="book-description" ellipsis={{ rows: 3, expandable: true, symbol: 'Xem thêm' }}>
                 {book.description}
               </Paragraph>
             </div>
           </div>
-          
+
           <Divider />
-          
+
           <div className="book-additional-info">
             <Row gutter={[16, 16]}>
               <Col span={8}>
@@ -302,9 +302,9 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
               </Col>
             </Row>
           </div>
-          
+
           <Divider />
-          
+
           <ActionReview
             rating={rating}
             setRating={setRating}
@@ -313,7 +313,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
             userReview={userReview}
             bookIdModal={bookId}
           />
-          
+
           <ListReview
             stars={stars}
             listReview={listReview}

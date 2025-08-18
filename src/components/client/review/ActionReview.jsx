@@ -6,15 +6,17 @@ import { useParams } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
 import { callCreateReview, callDeleteReview, callUpdateReview } from '../../../api/services';
+import { useAppSelector } from '../../../redux/hooks';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 const ActionReview = (props) => {
-    const {rating, setRating, comment, setComment, userReview, bookIdModal} = props;
+    const { rating, setRating, comment, setComment, userReview, bookIdModal } = props;
     const { id: routeBookId } = useParams();
     const bookId = bookIdModal || routeBookId;
     const [stompClient, setStompClient] = useState(null);
+    const user = useAppSelector(state => state.account.user);
 
     useEffect(() => {
         // Khởi tạo kết nối WebSocket
@@ -57,18 +59,21 @@ const ActionReview = (props) => {
 
     const handleSubmitReview = async () => {
         try {
-            if(userReview){
+            if (userReview) {
                 const reviewData = {
                     stars: rating,
                     comment: comment,
                 };
 
-                console.log("reviewData: ", reviewData);
-
                 await callUpdateReview(userReview.commentId, userReview.ratingId, reviewData);
                 message.success('Đã cập nhật đánh giá thành công');
             }
             else {
+                if (!user || user.id === '') {
+                    message.error('Vui lòng đăng nhập để gửi đánh giá');
+                    return;
+                }
+
                 if (!rating) {
                     message.error('Vui lòng chọn số sao đánh giá');
                     return;
@@ -78,11 +83,11 @@ const ActionReview = (props) => {
                     stars: rating,
                     comment: comment,
                 };
-                
+
                 await callCreateReview(reviewData, bookId);
                 message.success('Đã gửi đánh giá thành công');
             }
-            
+
             // Backend sẽ gửi dữ liệu qua WebSocket nên không cần thực hiện thêm hành động ở đây
             // UI sẽ được cập nhật tự động qua subscription WebSocket đã thiết lập
         } catch (error) {
@@ -108,7 +113,7 @@ const ActionReview = (props) => {
             // Đặt lại state
             setRating(0);
             setComment('');
-            
+
             // Backend sẽ gửi thông báo qua WebSocket để cập nhật UI
         } catch (error) {
             console.error("Lỗi khi xóa đánh giá:", error);
@@ -118,22 +123,22 @@ const ActionReview = (props) => {
 
     const items = [
         {
-          key: '1',
-          label: (
-            <Popconfirm
-            placement="bottomLeft"
-              title="Xác nhận xóa đánh giá"
-              description="Bạn có chắc chắn muốn xóa đánh giá này?"
-              onConfirm={handleDeleteReview}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <span style={{ color: '#ff4d4f' }}>Xóa</span>
-            </Popconfirm>
-          ),
+            key: '1',
+            label: (
+                <Popconfirm
+                    placement="bottomLeft"
+                    title="Xác nhận xóa đánh giá"
+                    description="Bạn có chắc chắn muốn xóa đánh giá này?"
+                    onConfirm={handleDeleteReview}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                >
+                    <span style={{ color: '#ff4d4f' }}>Xóa</span>
+                </Popconfirm>
+            ),
         },
-      ];
-    return(
+    ];
+    return (
         <div className="book-review">
             <div className="review-header">
                 <StarOutlined style={{ fontSize: '24px', color: '#faad14' }} />
@@ -142,21 +147,21 @@ const ActionReview = (props) => {
             <div className="review-form">
                 <div className="comment-input">
                     <TextArea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Mô tả đánh giá của bạn (không bắt buộc)"
-                    rows={4}
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Mô tả đánh giá của bạn (không bắt buộc)"
+                        rows={4}
                     />
                 </div>
                 <div className="rating-input">
-                    <Rate 
-                    value={rating} 
-                    onChange={setRating}
+                    <Rate
+                        value={rating}
+                        onChange={setRating}
                     />
                 </div>
-            
-                <Button 
-                    type="primary" 
+
+                <Button
+                    type="primary"
                     onClick={handleSubmitReview}
                     size="large"
                 >
@@ -166,10 +171,10 @@ const ActionReview = (props) => {
                 <div >
                     {userReview && (
                         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-                        <Button 
-                            type="text" 
-                            icon={<MoreOutlined style={{ fontSize: '20px' }}/>}
-                        />
+                            <Button
+                                type="text"
+                                icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+                            />
                         </Dropdown>
                     )}
                 </div>

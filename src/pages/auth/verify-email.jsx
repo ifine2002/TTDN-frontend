@@ -29,7 +29,6 @@ const VerifyEmailPage = () => {
         setLoading(true);
         try {
             const res = await callVerifyEmail(email, verificationCode);
-            console.log('check res: ', res);
             if (res && res.status === 200) {
                 message.success('Xác thực email thành công! Vui lòng đăng nhập.');
                 navigate('/login');
@@ -56,7 +55,6 @@ const VerifyEmailPage = () => {
 
         try {
             const res = await callResendToken(email);
-            console.log('check res: ', res);
             if (res && res.status === 200) {
                 message.success('Mã xác thực đã được gửi đến email của bạn!');
                 setCooldown(COOLDOWN_TIME);
@@ -80,8 +78,8 @@ const VerifyEmailPage = () => {
                         <p className="mt-2 text-sm text-gray-600">
                             Không tìm thấy thông tin email. Vui lòng đăng ký lại.
                         </p>
-                        <Button 
-                            type="primary" 
+                        <Button
+                            type="primary"
                             onClick={() => navigate('/register')}
                             className="mt-4"
                         >
@@ -123,7 +121,7 @@ const VerifyEmailPage = () => {
                             { len: 6, message: 'Mã xác thực phải có 6 ký tự!' }
                         ]}
                     >
-                        <Input 
+                        <Input
                             placeholder="Nhập mã xác thực 6 ký tự"
                             maxLength={6}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
@@ -131,9 +129,9 @@ const VerifyEmailPage = () => {
                     </Form.Item>
 
                     <Form.Item>
-                        <Button 
-                            type="primary" 
-                            htmlType="submit" 
+                        <Button
+                            type="primary"
+                            htmlType="submit"
                             loading={loading}
                             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
@@ -143,15 +141,15 @@ const VerifyEmailPage = () => {
 
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
-                            Không nhận được mã? 
-                            <Button 
-                                type="link" 
+                            Không nhận được mã?
+                            <Button
+                                type="link"
                                 onClick={handleResendToken}
                                 disabled={cooldown > 0 || resendAttempts >= MAX_RESEND_ATTEMPTS}
                                 className="text-indigo-600 hover:text-indigo-500"
                             >
-                                {cooldown > 0 
-                                    ? `Gửi lại (${cooldown}s)` 
+                                {cooldown > 0
+                                    ? `Gửi lại (${cooldown}s)`
                                     : `Gửi lại (${MAX_RESEND_ATTEMPTS - resendAttempts} lần còn lại)`}
                             </Button>
                         </p>

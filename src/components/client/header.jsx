@@ -10,7 +10,7 @@ import './../../styles/header.scss';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 
-const { Search } = Input; 
+const { Search } = Input;
 
 const Header = () => {
     const navigate = useNavigate();
@@ -22,7 +22,7 @@ const Header = () => {
     // App state
     const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
     const user = useAppSelector(state => state.account.user);
-    
+
     // Component state
     const [current, setCurrent] = useState('home');
     const [openMobileMenu, setOpenMobileMenu] = useState(false);
@@ -32,7 +32,7 @@ const Header = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [loading, setLoading] = useState(false);
     const [popoverVisible, setPopoverVisible] = useState(false);
-    
+
     const pageSize = 5;
 
     // Effects
@@ -116,7 +116,7 @@ const Header = () => {
     const handleSearchInput = (e) => {
         const value = e.target.value;
         setSearchValue(value);
-        
+
         if (value.trim().length >= 2) {
             // Push value vào RxJS Subject
             searchSubject.current.next(value);
@@ -172,11 +172,11 @@ const Header = () => {
                     <List
                         dataSource={searchResults}
                         renderItem={book => (
-                            <List.Item 
+                            <List.Item
                                 key={book.id}
                                 onMouseDown={() => goToBookDetail(book.id)}
                             >
-                                <Card 
+                                <Card
                                     size="small"
                                     styles={{ padding: '8px' }}
                                 >
@@ -194,11 +194,11 @@ const Header = () => {
                             </List.Item>
                         )}
                     />
-                    
+
                     {totalItems > searchResults.length && (
                         <div className="load-more-section">
-                            <Button 
-                                type="link" 
+                            <Button
+                                type="link"
                                 onMouseDown={handleLoadMore}
                             >
                                 Xem thêm
@@ -221,7 +221,7 @@ const Header = () => {
                     {!isMobile ? (
                         <div className="top-menu">
                             <div className='logo'>
-                                <h1><Link to="/">Goodreads</Link></h1>
+                                <h1><Link to="/">Bookspace</Link></h1>
                             </div>
                             <div className="search-container" ref={searchRef}>
                                 <Popover
@@ -254,7 +254,7 @@ const Header = () => {
                                     <Dropdown menu={{ items: dropdownItems }} trigger={['click']}>
                                         <Space style={{ cursor: "pointer" }}>
                                             <span>Welcome {user?.fullName}</span>
-                                            <Avatar src={user?.image} size={40} style={{border: 'none'}}>{user?.fullName?.substring(0, 2)?.toUpperCase()}</Avatar>
+                                            <Avatar src={user?.image} size={40} style={{ border: 'none' }}>{user?.fullName?.substring(0, 2)?.toUpperCase()}</Avatar>
                                         </Space>
                                     </Dropdown>
                                 )}

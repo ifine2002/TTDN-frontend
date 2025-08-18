@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { callFetchUserProfile, callGetAllPostOfUser, callFetchAllBookFavoriteOfUser, calUnfollow, callCreateFollow } from "../../api/services";
-import { Empty, Spin } from "antd"; 
+import { Empty, Spin } from "antd";
 import queryString from 'query-string';
 import SockJS from 'sockjs-client/dist/sockjs';
 import { Client } from '@stomp/stompjs';
@@ -21,12 +21,12 @@ const ProfilePage = () => {
     const [followerStates, setFollowerStates] = useState({});
     const [editProfileVisible, setEditProfileVisible] = useState(false);
     const [activeTab, setActiveTab] = useState("post");
-    
+
     const user = useAppSelector(state => state.account.user);
     const id = user.id;
     const isLoading = useRef(false);
     const headerRef = useRef(null);
-    
+
     // Thêm state cho danh sách bài viết
     const [books, setBooks] = useState([]);
     const [pagination, setPagination] = useState({
@@ -35,7 +35,7 @@ const ProfilePage = () => {
         totalElements: 0,
         totalPages: 0
     });
-    
+
     // WebSocket client
     const [stompClient, setStompClient] = useState(null);
 
@@ -70,7 +70,7 @@ const ProfilePage = () => {
             fetchUserProfile();
         }
     }, [id, user?.id]);
-    
+
     // Khởi tạo WebSocket
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
@@ -158,7 +158,7 @@ const ProfilePage = () => {
             totalElements: 0,
             totalPages: 0
         }));
-        
+
         fetchBooks(1);
     };
 
@@ -172,7 +172,7 @@ const ProfilePage = () => {
         // console.log(`Starting fetch for page ${pageNumber}...`);
         isLoading.current = true;
         setLoading(true);
-        
+
         try {
             const pageForApi = pageNumber - 1;
             const params = {
@@ -186,13 +186,13 @@ const ProfilePage = () => {
             const response = await callGetAllPostOfUser(userData.email, query);
             if (response && response.data) {
                 const { result, totalPages, totalElements } = response.data;
-                
+
                 if (pageNumber === 1) {
                     setBooks(result || []);
                 } else {
                     setBooks(prevBooks => [...prevBooks, ...(result || [])]);
                 }
-                
+
                 setPagination({
                     page: pageNumber,
                     pageSize: pagination.pageSize,
@@ -216,23 +216,23 @@ const ProfilePage = () => {
             const originalBodyOverflow = window.getComputedStyle(document.body).overflow;
             const scrollbarWidth = getScrollbarWidth();
             const bodyPaddingRightValue = parseInt(originalBodyPaddingRight, 10) || 0;
-    
+
             document.body.style.overflow = 'hidden';
             document.body.style.paddingRight = `${bodyPaddingRightValue + scrollbarWidth}px`;
-    
+
             const header = document.querySelector('.header-section');
             let originalHeaderPaddingRight = '0px';
-            
+
             if (header) {
                 originalHeaderPaddingRight = window.getComputedStyle(header).paddingRight;
                 const currentHeaderPadding = parseInt(originalHeaderPaddingRight, 10) || 0;
                 header.style.paddingRight = `${currentHeaderPadding + scrollbarWidth}px`;
             }
-    
+
             return () => {
                 document.body.style.overflow = originalBodyOverflow;
                 document.body.style.paddingRight = originalBodyPaddingRight;
-    
+
                 if (header) {
                     header.style.paddingRight = originalHeaderPaddingRight;
                 }
@@ -248,7 +248,7 @@ const ProfilePage = () => {
         }
 
         const nextPage = pagination.page + 1;
-        
+
         if (nextPage <= pagination.totalPages) {
             const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             fetchBooks(nextPage).then(() => {
@@ -276,10 +276,10 @@ const ProfilePage = () => {
         }, 100);
 
         handleScroll();
-        
+
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('resize', handleScroll);
-        
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             window.removeEventListener('resize', handleScroll);
@@ -289,7 +289,7 @@ const ProfilePage = () => {
     // Xử lý khi tab thay đổi
     const handleTabChange = (activeKey) => {
         setActiveTab(activeKey);
-        
+
         // Chỉ gọi API fetchFavoriteBooks khi chuyển sang tab "books" (Yêu thích)
         if (activeKey === "books" && !favoriteLoaded && userData?.id) {
             resetAndFetchFavoriteBooks();
@@ -384,7 +384,7 @@ const ProfilePage = () => {
                     [userId]: true
                 }));
             }
-            
+
         } catch (error) {
             console.error("Lỗi khi thực hiện follow/unfollow:", error);
         }
@@ -477,7 +477,7 @@ const ProfilePage = () => {
     };
 
     return (
-        <div className="max-w-6xl p-4">
+        <div className="max-w-full p-4">
             <ProfileHeader
                 userData={userData}
                 headerRef={headerRef}

@@ -37,6 +37,7 @@ const LayoutAdmin = () => {
     const [stompClient, setStompClient] = useState(null);
     const [showForbidden, setShowForbidden] = useState(false);
     const user = useAppSelector(state => state.account.user);
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
 
     const permissions = useAppSelector(state => state.account.user?.role?.permissions || []);
     const [menuItems, setMenuItems] = useState([]);
@@ -63,13 +64,13 @@ const LayoutAdmin = () => {
 
         client.onConnect = () => {
             // console.log('AdminLayout connected to WebSocket');
-            
+
             // Đăng ký nhận thông báo khi có sách mới
             client.subscribe('/topic/admin-books', (message) => {
                 try {
                     const notification = JSON.parse(message.body);
                     // console.log('AdminLayout received notification:', notification);
-                    
+
                     const action = notification.action;
                     if (action === 'create') {
                         // Tăng số lượng sách chờ duyệt
@@ -104,8 +105,15 @@ const LayoutAdmin = () => {
     }, [location.pathname]);
 
     useEffect(() => {
+        if (isAuthenticated === false) {
+            setShowForbidden(true);
+        }
+    }, [isAuthenticated]);
+
+
+    useEffect(() => {
         const ACL_ENABLE = import.meta.env.VITE_ACL_ENABLE;
-        
+
         if (permissions?.length || ACL_ENABLE === 'false') {
 
             const viewRating = permissions?.find(item =>
@@ -153,18 +161,18 @@ const LayoutAdmin = () => {
                 && item.method === ALL_PERMISSIONS.APPROVED_BOOKS.GET_PAGINATE.method
             )
 
-            const hasAnyViewPermission = 
-            viewRating || 
-            viewComment || 
-            viewPermission || 
-            viewCategory || 
-            viewRole || 
-            viewUser || 
-            viewFollow || 
-            viewBook || 
-            viewApprovedBook || 
-            ACL_ENABLE === 'false';
-            
+            const hasAnyViewPermission =
+                viewRating ||
+                viewComment ||
+                viewPermission ||
+                viewCategory ||
+                viewRole ||
+                viewUser ||
+                viewFollow ||
+                viewBook ||
+                viewApprovedBook ||
+                ACL_ENABLE === 'false';
+
             if (!hasAnyViewPermission) {
                 setShowForbidden(true);
                 return;

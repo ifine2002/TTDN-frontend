@@ -5,7 +5,7 @@ import axios from './axios';
  *Module Auth
  */
 
-export const callRegister = (email, password,confirmPassword, fullName) => {
+export const callRegister = (email, password, confirmPassword, fullName) => {
   const data = {
     email: email,
     password: password,
@@ -141,30 +141,30 @@ export const callUpdateUser = (userData, userId) => {
 }
 
 export const callUpdateUserProfile = (userData) => {
-   // Tạo FormData object
-   const formData = new FormData();
-   if (userData.fullName) formData.append('fullName', userData.fullName);
-   // Xử lý file image hoặc flag xóa image
-   if (userData.image) {
-     formData.append('image', userData.image);
-   } else if (userData.deleteImage === true) {
-     // Thêm flag xóa ảnh
-     formData.append('deleteImage', 'true');
-   }
-   if (userData.phone) formData.append('phone', userData.phone);
-   if (userData.gender) formData.append('gender', userData.gender);
-   // Chuyển đổi date thành định dạng ISO cho LocalDate
-   if (userData.userDOB) {
-     // Nếu là Date object
-     if (userData.userDOB instanceof Date) {
-       const isoDate = userData.userDOB.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-       formData.append('userDOB', isoDate);
-     } else {
-       // Nếu đã là string đúng định dạng
-       formData.append('userDOB', userData.userDOB);
-     }
-   }
-   if (userData.address) formData.append('address', userData.address);
+  // Tạo FormData object
+  const formData = new FormData();
+  if (userData.fullName) formData.append('fullName', userData.fullName);
+  // Xử lý file image hoặc flag xóa image
+  if (userData.image) {
+    formData.append('image', userData.image);
+  } else if (userData.deleteImage === true) {
+    // Thêm flag xóa ảnh
+    formData.append('deleteImage', 'true');
+  }
+  if (userData.phone) formData.append('phone', userData.phone);
+  if (userData.gender) formData.append('gender', userData.gender);
+  // Chuyển đổi date thành định dạng ISO cho LocalDate
+  if (userData.userDOB) {
+    // Nếu là Date object
+    if (userData.userDOB instanceof Date) {
+      const isoDate = userData.userDOB.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      formData.append('userDOB', isoDate);
+    } else {
+      // Nếu đã là string đúng định dạng
+      formData.append('userDOB', userData.userDOB);
+    }
+  }
+  if (userData.address) formData.append('address', userData.address);
   return axios.put(`/user/change-info`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -202,7 +202,7 @@ export const callChangePassword = (data) => {
  *Module Book
  */
 
- export const callCreateBook = (data) => {
+export const callCreateBook = (data) => {
   // Tạo FormData object
   const formData = new FormData();
   if (data.name) formData.append('name', data.name);
@@ -245,29 +245,29 @@ export const callChangePassword = (data) => {
 }
 
 export const callUpdateBook = (data, id) => {
-   // Tạo FormData object
-   const formData = new FormData();
-   if (data.name) formData.append('name', data.name);
-   if (data.description) formData.append('description', data.description);
-   // Xử lý file image hoặc flag xóa image
+  // Tạo FormData object
+  const formData = new FormData();
+  if (data.name) formData.append('name', data.name);
+  if (data.description) formData.append('description', data.description);
+  // Xử lý file image hoặc flag xóa image
   if (data.image) {
     formData.append('image', data.image);
   } else if (data.deleteImage === true) {
     // Thêm flag xóa ảnh
     formData.append('deleteImage', 'true');
   }
-   if (data.publishedDate) {
+  if (data.publishedDate) {
     formData.append('publishedDate', data.publishedDate);
-   }
- 
-   if (data.bookFormat) formData.append('bookFormat', data.bookFormat);
-   if (data.bookSaleLink) formData.append('bookSaleLink', data.bookSaleLink);
- 
-   if (data.language) formData.append('language', data.language);
-   if (data.author) formData.append('author', data.author);
-   if (data.status) formData.append('status', data.status);
-   
-   if (data.categoryIds) {
+  }
+
+  if (data.bookFormat) formData.append('bookFormat', data.bookFormat);
+  if (data.bookSaleLink) formData.append('bookSaleLink', data.bookSaleLink);
+
+  if (data.language) formData.append('language', data.language);
+  if (data.author) formData.append('author', data.author);
+  if (data.status) formData.append('status', data.status);
+
+  if (data.categoryIds) {
     if (Array.isArray(data.categoryIds)) {
       data.categoryIds.forEach(categoryId => {
         formData.append('categoryIds', categoryId);
@@ -276,12 +276,12 @@ export const callUpdateBook = (data, id) => {
       formData.append('categoryIds', data.categoryIds);
     }
   }
-   // Gửi request với content-type là multipart/form-data
-   return axios.put(`/book/${id}`, formData, {
-     headers: {
-       'Content-Type': 'multipart/form-data'
-     }
-   });
+  // Gửi request với content-type là multipart/form-data
+  return axios.put(`/book/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
 }
 
 export const callDeleteBook = (id) => {
@@ -459,7 +459,7 @@ export const callFetchPermissionById = (id) => {
  *Module Category
  */
 
- export const callCreateCategory = (data) => {
+export const callCreateCategory = (data) => {
   // Tạo FormData object
   const formData = new FormData();
 
@@ -613,15 +613,15 @@ export const callDeleteReview = (commentId, ratingId) => {
 
 export const callUpdateReview = (commentId, ratingId, review) => {
   let url = '/review/update-review?';
-  
+
   if (ratingId) {
     url += `ratingId=${ratingId}`;
   }
-  
+
   if (commentId) {
     url += `${ratingId ? '&' : ''}commentId=${commentId}`;
   }
-  console.log("url: ", url)
+  // console.log("url: ", url)
   return axios.put(url, {
     stars: review.stars,
     comment: review.comment

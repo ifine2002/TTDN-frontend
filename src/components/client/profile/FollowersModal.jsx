@@ -2,7 +2,7 @@ import { Modal, Tabs, List, Avatar, Button, Divider, Empty } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { calUnfollow, callCreateFollow } from '../../../api/services';
-import { useAppDispatch } from '../../../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { fetchFollowing } from '../../../redux/slice/followSlice';
 
 const { TabPane } = Tabs;
@@ -17,6 +17,7 @@ const FollowersModal = ({
     currentUser
 }) => {
     const dispatch = useAppDispatch();
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
 
     // Hàm kiểm tra xem user có trong listFollowing không
     const isUserInFollowingList = (userId) => {
@@ -34,7 +35,7 @@ const FollowersModal = ({
                 followerId: currentUser.id,
                 followingId: userId
             };
-    
+
             if (isFollowing) {
                 await calUnfollow(follow);
             } else {
@@ -48,13 +49,13 @@ const FollowersModal = ({
     };
 
     const renderFollowButton = (user) => {
-        if (isCurrentUser(user.id)) {
+        if (isCurrentUser(user.id) || !isAuthenticated) {
             return null; // Không hiển thị nút nếu là user đang đăng nhập
         }
-    
+
         return (
-            <Button 
-                key="follow" 
+            <Button
+                key="follow"
                 size="small"
                 onClick={() => handleFollowToggle(user.id)}
                 className={`${isUserInFollowingList(user.id) ? 'bg-gray-500 hover:!bg-gray-600' : 'bg-blue-500 hover:!bg-blue-600'} w-20 !text-white hover:!text-white`}
@@ -74,7 +75,7 @@ const FollowersModal = ({
             width={600}
             getContainer={false}
         >
-            <Tabs 
+            <Tabs
                 defaultActiveKey={activeModalTab}
                 activeKey={activeModalTab}
                 onChange={(key) => setActiveModalTab(key)}

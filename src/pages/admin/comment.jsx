@@ -162,20 +162,15 @@ const CommentPage = () => {
 
         const clone = { ...params };
         let filterArray = [];
-        
+
         if (clone.id) filterArray.push(`${sfLike("id", clone.id)}`);
 
         if (clone.comment) filterArray.push(`${sfLike("comment", clone.comment)}`);
 
-        if (clone.ratingComment) {
-            console.log("check ratingBool: ", ratingBool)
-            filterArray.push(`isRatingComment=${ratingBool}`);
-        }
-
         if (clone.userId) filterArray.push(`${sfLike("userId", clone.userId)}`);
 
         if (clone.bookId) filterArray.push(`${sfLike("bookId", clone.bookId)}`);
-        
+
         if (filterArray.length > 0) {
             q.filter = filterArray.join(" and ");
         }

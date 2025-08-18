@@ -7,15 +7,15 @@
   width: 100%;
   padding: 0;
   margin-bottom: 24px !important;
-  
+
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   will-change: position, top;
-  
+
   &.sticky {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
+
   .ant-card-body {
     padding: 16px 24px;
   }
@@ -28,33 +28,33 @@
     padding: 10px 0;
     margin-bottom: 20px;
     border-bottom: 1px solid #f0f0f0;
-    
+
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     will-change: position, top;
-    
+
     &::before {
       border-bottom: 1px solid #f0f0f0;
     }
   }
-  
+
   .ant-tabs-tab {
     padding: 12px 0;
     font-size: 16px;
-    
+
     &.ant-tabs-tab-active {
       .ant-tabs-tab-btn {
         color: #1890ff;
       }
     }
-    
+
     .ant-tabs-tab-btn {
       .anticon {
         margin-right: 8px;
       }
     }
   }
-  
+
   .ant-tabs-ink-bar {
     background-color: #1890ff;
     height: 3px;
@@ -73,15 +73,15 @@
       padding: 16px;
     }
   }
-  
+
   .profile-tabs {
     .ant-tabs-nav {
       top: 120px;
     }
-    
+
     .ant-tabs-tab {
       padding: 8px 0;
       font-size: 14px;
     }
   }
-} 
+}
