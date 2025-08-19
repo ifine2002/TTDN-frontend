@@ -15,6 +15,19 @@ const instance = axiosClient.create({
 const mutex = new Mutex();
 const NO_RETRY_HEADER = 'x-no-retry';
 
+const PUBLIC_APIS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/book/home-page', '/book/search', '/book/explore', '/category/list-upload',
+];
+
+// Kiểm tra xem API có phải là public không
+const isPublicAPI = (url) => {
+  if (!url) return false;
+  return PUBLIC_APIS.some(api => url.includes(api));
+};
+
 const handleRefreshToken = async () => {
   return await mutex.runExclusive(async () => {
     const res = await instance.get('/auth/refresh');
@@ -24,6 +37,12 @@ const handleRefreshToken = async () => {
 };
 
 instance.interceptors.request.use(function (config) {
+  // Không thêm token cho public APIs
+  if (isPublicAPI(config.url)) {
+    delete config.headers.Authorization;
+    return config;
+  }
+
   if (typeof window !== "undefined" && window && window.localStorage && window.localStorage.getItem('access_token')) {
     config.headers.Authorization = 'Bearer ' + window.localStorage.getItem('access_token');
   }
@@ -44,9 +63,11 @@ instance.interceptors.response.use(
     if (error.config && error.response
       && +error.response.status === 401
       && error.config.url !== '/auth/login'
+      && !isPublicAPI(error.config.url)
       && !error.config.headers[NO_RETRY_HEADER]
     ) {
       const access_token = await handleRefreshToken();
+      console.log("handleRefreshToken", access_token);
       error.config.headers[NO_RETRY_HEADER] = 'true'
       if (access_token) {
         error.config.headers['Authorization'] = `Bearer ${access_token}`;
