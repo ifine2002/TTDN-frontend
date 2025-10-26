@@ -196,8 +196,6 @@ const LayoutAdmin = () => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated === false) {
-      // Thay vì hiển thị Forbidden, navigate về login
-      console.log(">>> check isAuthen: ", isAuthenticated);
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);

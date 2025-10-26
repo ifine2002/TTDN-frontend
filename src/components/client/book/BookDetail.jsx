@@ -1,15 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Typography, Rate, Button, Divider, Input, message } from 'antd';
-import { ShoppingCartOutlined, HeartOutlined, HeartFilled } from '@ant-design/icons';
-import { callGetBookDetailById } from '../../../api/services';
-import { useParams } from 'react-router-dom';
-import './../../../styles/BookDetail.scss';
-import { useAppSelector, useAppDispatch } from '../../../redux/hooks';
-import ActionReview from '../review/ActionReview';
-import ListReview from '../review/ListReview';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client/dist/sockjs';
-import { likeBook, unlikeBook, fetchFavorite } from '../../../redux/slice/favoriteSlice';
+import { useState, useEffect, useCallback } from "react";
+import {
+  Row,
+  Col,
+  Typography,
+  Rate,
+  Button,
+  Divider,
+  Input,
+  message,
+  Spin,
+} from "antd";
+import {
+  ShoppingCartOutlined,
+  HeartOutlined,
+  HeartFilled,
+} from "@ant-design/icons";
+import { callGetBookDetailById } from "../../../api/services";
+import { useParams } from "react-router-dom";
+import "./../../../styles/BookDetail.scss";
+import { useAppSelector, useAppDispatch } from "../../../redux/hooks";
+import ActionReview from "../review/ActionReview";
+import ListReview from "../review/ListReview";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client/dist/sockjs";
+import {
+  likeBook,
+  unlikeBook,
+  fetchFavorite,
+} from "../../../redux/slice/favoriteSlice";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -19,31 +37,34 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
 
-  const user = useAppSelector(state => state.account.user);
+  const user = useAppSelector((state) => state.account.user);
   const dispatch = useAppDispatch();
 
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [listReview, setListReview] = useState([]);
   const [userReview, setUserReview] = useState(null);
   const [stars, setStart] = useState(null);
 
-  const favoriteBooks = useAppSelector(state => state.favorite.favoriteBooks);
+  const favoriteBooks = useAppSelector((state) => state.favorite.favoriteBooks);
   const isFavorite = favoriteBooks.includes(book?.id);
 
-  const fetchBookDetail = useCallback(async (showLoading = true) => {
-    try {
-      if (showLoading) setLoading(true);
-      const response = await callGetBookDetailById(id);
-      setBook(response.data);
-      setListReview(response.data.reviews);
-      setStart(response.data.stars);
-      if (showLoading) setLoading(false);
-    } catch (error) {
-      console.error('Error fetching book details:', error);
-      if (showLoading) setLoading(false);
-    }
-  }, [id]);
+  const fetchBookDetail = useCallback(
+    async (showLoading = true) => {
+      try {
+        if (showLoading) setLoading(true);
+        const response = await callGetBookDetailById(id);
+        setBook(response.data);
+        setListReview(response.data.reviews);
+        setStart(response.data.stars);
+        if (showLoading) setLoading(false);
+      } catch (error) {
+        console.error("Error fetching book details:", error);
+        if (showLoading) setLoading(false);
+      }
+    },
+    [id]
+  );
 
   useEffect(() => {
     if (id) {
@@ -52,39 +73,39 @@ const BookDetail = () => {
   }, [id, fetchBookDetail]);
 
   useEffect(() => {
-    if (user && user.id !== '') {
-      dispatch(fetchFavorite({ query: '' }));
+    if (user && user.id !== "") {
+      dispatch(fetchFavorite({ query: "" }));
     }
   }, [user, dispatch]);
 
   useEffect(() => {
     if (user?.id && listReview?.length > 0) {
-      const existingReview = listReview.find(review => review.userId === user.id);
+      const existingReview = listReview.find(
+        (review) => review.userId === user.id
+      );
       if (existingReview) {
         setUserReview(existingReview);
         setRating(existingReview.stars || 0);
-        setComment(existingReview.comment || '');
+        setComment(existingReview.comment || "");
       } else {
         setUserReview(null);
         setRating(0);
-        setComment('');
+        setComment("");
       }
     }
   }, [user?.id, listReview]);
 
   useEffect(() => {
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: function (str) {
-      },
+      debug: function (str) {},
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
 
     client.onConnect = () => {
-
       client.subscribe(`/topic/reviews/${id}`, (message) => {
         if (message.body) {
           const notification = JSON.parse(message.body);
@@ -110,8 +131,8 @@ const BookDetail = () => {
     };
 
     client.onStompError = (frame) => {
-      console.error('Broker reported error: ' + frame.headers['message']);
-      console.error('Additional details: ' + frame.body);
+      console.error("Broker reported error: " + frame.headers["message"]);
+      console.error("Additional details: " + frame.body);
     };
 
     client.activate();
@@ -126,8 +147,10 @@ const BookDetail = () => {
   const handleReviewCreateOrUpdate = (reviewData) => {
     console.log("Xử lý cập nhật review:", reviewData);
 
-    setListReview(prevReviews => {
-      const existingReviewIndex = prevReviews.findIndex(r => r.userId === reviewData.userId);
+    setListReview((prevReviews) => {
+      const existingReviewIndex = prevReviews.findIndex(
+        (r) => r.userId === reviewData.userId
+      );
 
       if (existingReviewIndex !== -1) {
         const updatedReviews = [...prevReviews];
@@ -135,7 +158,7 @@ const BookDetail = () => {
           ...updatedReviews[existingReviewIndex],
           stars: reviewData.stars,
           comment: reviewData.comment,
-          updatedAt: reviewData.updatedAt
+          updatedAt: reviewData.updatedAt,
         };
         return updatedReviews;
       } else {
@@ -146,26 +169,30 @@ const BookDetail = () => {
     if (user?.id && reviewData.userId === user.id) {
       setUserReview(reviewData);
       setRating(reviewData.stars || 0);
-      setComment(reviewData.comment || '');
+      setComment(reviewData.comment || "");
     }
   };
 
   const handleReviewDelete = (userId) => {
     console.log("Xử lý xóa review của user:", userId);
 
-    setListReview(prevReviews =>
-      prevReviews.filter(review => review.userId !== userId)
+    setListReview((prevReviews) =>
+      prevReviews.filter((review) => review.userId !== userId)
     );
 
     if (user?.id && user.id === userId) {
       setUserReview(null);
       setRating(0);
-      setComment('');
+      setComment("");
     }
   };
 
   if (loading) {
-    return <div>Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" tip="Đang tải..." />
+      </div>
+    );
   }
 
   if (!book) {
@@ -174,32 +201,31 @@ const BookDetail = () => {
 
   const toggleFavorite = async () => {
     try {
-      if (!user || user.id === '') {
-        message.warning('Vui lòng đăng nhập để yêu thích sách');
+      if (!user || user.id === "") {
+        message.warning("Vui lòng đăng nhập để yêu thích sách");
         return;
       }
 
       if (isFavorite) {
         // Nếu đã yêu thích thì gọi API hủy yêu thích
         await dispatch(unlikeBook(book.id));
-        message.success('Đã bỏ yêu thích sách');
+        message.success("Đã bỏ yêu thích sách");
       } else {
         // Nếu chưa yêu thích thì gọi API yêu thích
         await dispatch(likeBook(book.id));
-        message.success('Đã thêm vào danh sách yêu thích');
+        message.success("Đã thêm vào danh sách yêu thích");
       }
 
       // Sau khi thao tác thành công, cập nhật lại danh sách sách yêu thích
-      dispatch(fetchFavorite({ query: '' }));
+      dispatch(fetchFavorite({ query: "" }));
     } catch (error) {
-      console.error('Lỗi khi thao tác với sách yêu thích:', error);
-      message.error('Có lỗi xảy ra khi thao tác với sách yêu thích');
+      console.error("Lỗi khi thao tác với sách yêu thích:", error);
+      message.error("Có lỗi xảy ra khi thao tác với sách yêu thích");
     }
   };
 
   return (
     <div className="book-detail-container">
-
       <div className="book-image-container">
         <img src={book.image} alt={book.name} className="book-image" />
         <div className="book-actions">
@@ -216,14 +242,16 @@ const BookDetail = () => {
             size="large"
             icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
             onClick={toggleFavorite}
-            className={isFavorite ? 'favorite-button active' : 'favorite-button'}
+            className={
+              isFavorite ? "favorite-button active" : "favorite-button"
+            }
           >
             Yêu thích
           </Button>
         </div>
       </div>
 
-      <div className='content-container'>
+      <div className="content-container">
         <div className="book-info">
           <div className="book-header">
             <Title level={2}>{book.name}</Title>
@@ -234,15 +262,20 @@ const BookDetail = () => {
 
           <div className="book-rating">
             <Rate allowHalf disabled value={stars.averageRating} />
-            <Text className="rating-count">{stars.averageRating.toFixed(1)}</Text>
-            <Text className="reviews-count">({stars.ratingCount} đánh giá)</Text>
+            <Text className="rating-count">
+              {stars.averageRating.toFixed(1)}
+            </Text>
+            <Text className="reviews-count">
+              ({stars.ratingCount} đánh giá)
+            </Text>
           </div>
 
-          <Paragraph className="book-description">
-            {book.description}
-          </Paragraph>
-          <div className='book-categories'>
-            <Text><span style={{ 'fontWeight': 'bold' }}>Thể loại:</span> {book.categories?.map(cat => cat.name).join(', ')}</Text>
+          <Paragraph className="book-description">{book.description}</Paragraph>
+          <div className="book-categories">
+            <Text>
+              <span style={{ fontWeight: "bold" }}>Thể loại:</span>{" "}
+              {book.categories?.map((cat) => cat.name).join(", ")}
+            </Text>
           </div>
 
           <div className="book-details">
@@ -270,10 +303,7 @@ const BookDetail = () => {
             setComment={setComment}
             userReview={userReview}
           />
-          <ListReview
-            stars={stars}
-            listReview={listReview}
-          />
+          <ListReview stars={stars} listReview={listReview} />
         </div>
       </div>
     </div>
