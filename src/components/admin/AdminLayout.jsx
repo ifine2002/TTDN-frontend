@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppstoreOutlined,
   ExceptionOutlined,
@@ -56,83 +56,6 @@ const LayoutAdmin = () => {
     (state) => state.account.user?.role?.permissions || []
   );
   const [menuItems, setMenuItems] = useState([]);
-
-  // Kiểm tra permissions ngay từ đầu
-  // const hasAdminPermissions = useMemo(() => {
-  //   const ACL_ENABLE = import.meta.env.VITE_ACL_ENABLE;
-
-  //   if (permissions?.length || ACL_ENABLE === "false") {
-  //     const viewRating = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.RATINGS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.RATINGS.GET_PAGINATE.method
-  //     );
-
-  //     const viewComment = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.COMMENTS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.COMMENTS.GET_PAGINATE.method
-  //     );
-
-  //     const viewPermission = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.PERMISSIONS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.PERMISSIONS.GET_PAGINATE.method
-  //     );
-
-  //     const viewCategory = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.CATEGORIES.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.CATEGORIES.GET_PAGINATE.method
-  //     );
-
-  //     const viewRole = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.ROLES.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.ROLES.GET_PAGINATE.method
-  //     );
-
-  //     const viewUser = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.USERS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.USERS.GET_PAGINATE.method
-  //     );
-
-  //     const viewFollow = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.FOLLOWS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.FOLLOWS.GET_PAGINATE.method
-  //     );
-
-  //     const viewBook = permissions?.find(
-  //       (item) =>
-  //         item.apiPath === ALL_PERMISSIONS.BOOKS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.BOOKS.GET_PAGINATE.method
-  //     );
-
-  //     const viewApprovedBook = permissions?.find(
-  //       (item) =>
-  //         item.apiPath ===
-  //           ALL_PERMISSIONS.APPROVED_BOOKS.GET_PAGINATE.apiPath &&
-  //         item.method === ALL_PERMISSIONS.APPROVED_BOOKS.GET_PAGINATE.method
-  //     );
-
-  //     return (
-  //       viewRating ||
-  //       viewComment ||
-  //       viewPermission ||
-  //       viewCategory ||
-  //       viewRole ||
-  //       viewUser ||
-  //       viewFollow ||
-  //       viewBook ||
-  //       viewApprovedBook ||
-  //       ACL_ENABLE === "false"
-  //     );
-  //   }
-
-  //   return false;
-  // }, [permissions]);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
