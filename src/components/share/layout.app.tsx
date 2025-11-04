@@ -1,10 +1,14 @@
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { setRefreshTokenAction } from "../../redux/slice/accountSlice";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { setRefreshTokenAction } from "redux/slice/accountSlice";
 import { message } from "antd";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const LayoutApp = (props) => {
+interface IProps {
+  children: React.ReactNode;
+}
+
+const LayoutApp = (props: IProps) => {
   const isRefreshToken = useAppSelector(
     (state) => state.account.isRefreshToken
   );

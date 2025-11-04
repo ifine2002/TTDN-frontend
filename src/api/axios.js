@@ -104,7 +104,6 @@ instance.interceptors.response.use(
   (res) => res.data,
   async (error) => {
     const originalRequest = error.config;
-    console.log(">>> originalRequest", originalRequest);
 
     if (
       error.response &&

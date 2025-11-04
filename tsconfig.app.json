@@ -28,9 +28,12 @@
       "@/*": ["./src/*"],
       "assets/*": ["./src/assets/*"],
       "components/*": ["./src/components/*"],
-      "helpers/*": ["./src/helpers/*"],
       "pages/*": ["./src/pages/*"],
-      "styles/*": ["./src/styles/*"]
+      "styles/*": ["./src/styles/*"],
+      "utils/*": ["./src/utils/*"],
+      "redux/*": ["./src/redux/*"],
+      "api/*": ["./src/api/*"],
+      "types/*": ["./src/types/*"]
     }
   },
   "include": ["src"]

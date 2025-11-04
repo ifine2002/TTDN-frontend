@@ -1,43 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Typography, Spin } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import SockJS from 'sockjs-client/dist/sockjs';
-import { Client } from '@stomp/stompjs';
-import queryString from 'query-string';
-import { useAppSelector } from '../../redux/hooks';
-
-import { callGetHomeBooks } from '../../api/services';
-import BookList from '../../components/client/book/BookList';
-
-const { Title } = Typography;
+import { useState, useEffect, useRef } from "react";
+import { Spin } from "antd";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
+import queryString from "query-string";
+import { callGetHomeBooks } from "api/services";
+import BookList from "components/client/book/BookList";
+import { IPagination, IPost } from "@/types/backend";
 
 const HomePage = () => {
-  const navigate = useNavigate();
   const isLoading = useRef(false);
-  const isAuthenticated = useAppSelector((state) => state.account.isAuthenticated);
 
   // State
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({
+  const [books, setBooks] = useState<IPost[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<IPagination>({
     page: 1,
     pageSize: 5,
     totalElements: 0,
-    totalPages: 0
+    totalPages: 0,
   });
-
-  // WebSocket client
-  const [stompClient, setStompClient] = useState(null);
 
   // Khởi tạo WebSocket
   useEffect(() => {
     // Tạo WebSocket connection
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: function (str) {
-        // console.log(str);
-      },
+      // debug: function (str) {
+      //   // console.log(str);
+      // },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -48,37 +39,39 @@ const HomePage = () => {
       // console.log('Connected to WebSocket');
 
       // Subscribe đến topic cập nhật sách
-      client.subscribe('/topic/books', (message) => {
+      client.subscribe("/topic/books", () => {
         try {
-          const notificationData = JSON.parse(message.body);
+          // const notificationData = JSON.parse(message.body);
           // console.log('WebSocket notification received:', notificationData);
 
           // Cập nhật lại dữ liệu khi có sự thay đổi
           resetAndFetchBooks();
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error("Error parsing WebSocket message:", error);
         }
       });
 
       // Subscribe đến topic duyệt sách từ trang admin approval
-      client.subscribe('/topic/admin-books', (message) => {
+      client.subscribe("/topic/admin-books", (message) => {
         try {
           const notificationData = JSON.parse(message.body);
-          if (notificationData.action === 'approve') {
+          if (notificationData.action === "approve") {
             const approvedBook = notificationData.data;
-            setBooks(prevBooks => {
-              if (prevBooks.some(book => book.bookId === approvedBook.bookId)) {
+            setBooks((prevBooks) => {
+              if (
+                prevBooks.some((book) => book.bookId === approvedBook.bookId)
+              ) {
                 return prevBooks;
               }
               return [approvedBook, ...prevBooks];
             });
-            setPagination(prev => ({
+            setPagination((prev) => ({
               ...prev,
-              totalElements: prev.totalElements + 1
+              totalElements: prev.totalElements + 1,
             }));
           }
         } catch (error) {
-          console.error('Error parsing admin book WebSocket message:', error);
+          console.error("Error parsing admin book WebSocket message:", error);
         }
       });
     };
@@ -90,13 +83,12 @@ const HomePage = () => {
 
     // Khi có lỗi
     client.onStompError = (frame) => {
-      console.error('Broker reported error: ' + frame.headers['message']);
-      console.error('Additional details: ' + frame.body);
+      console.error("Broker reported error: " + frame.headers["message"]);
+      console.error("Additional details: " + frame.body);
     };
 
     // Kết nối
     client.activate();
-    setStompClient(client);
 
     // Cleanup khi unmount
     return () => {
@@ -114,18 +106,18 @@ const HomePage = () => {
   // Reset dữ liệu và fetch lại từ đầu
   const resetAndFetchBooks = () => {
     setBooks([]);
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
       page: 1,
       totalElements: 0,
-      totalPages: 0
+      totalPages: 0,
     }));
 
     fetchBooks(1); // Trang 1
   };
 
   // Hàm lấy dữ liệu sách từ API
-  const fetchBooks = async (pageNumber) => {
+  const fetchBooks = async (pageNumber: number) => {
     // Ngăn ngừa fetch trùng lặp
     if (isLoading.current) {
       return Promise.resolve();
@@ -142,7 +134,7 @@ const HomePage = () => {
       const params = {
         page: pageForApi,
         size: pagination.pageSize,
-        sort: 'updatedAt,desc' // Mặc định sắp xếp theo ngày tạo, mới nhất trước
+        sort: "updatedAt,desc", // Mặc định sắp xếp theo ngày tạo, mới nhất trước
       };
 
       // Gọi API
@@ -157,7 +149,7 @@ const HomePage = () => {
           setBooks(result || []);
         } else {
           // Nếu không, thêm vào danh sách hiện tại
-          setBooks(prevBooks => [...prevBooks, ...(result || [])]);
+          setBooks((prevBooks) => [...prevBooks, ...(result || [])]);
         }
 
         // Cập nhật pagination
@@ -165,13 +157,12 @@ const HomePage = () => {
           page: pageNumber,
           pageSize: pagination.pageSize,
           totalElements,
-          totalPages
+          totalPages,
         });
-
       }
       return Promise.resolve();
     } catch (error) {
-      console.error('Error fetching books:', error);
+      console.error("Error fetching books:", error);
       return Promise.reject(error);
     } finally {
       setLoading(false);
@@ -189,14 +180,15 @@ const HomePage = () => {
 
     if (nextPage <= pagination.totalPages) {
       // Lưu lại vị trí scroll hiện tại
-      const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollPosition =
+        window.pageYOffset || document.documentElement.scrollTop;
 
       fetchBooks(nextPage).then(() => {
         // Khôi phục lại vị trí scroll sau khi hoàn thành
         setTimeout(() => {
           window.scrollTo({
             top: scrollPosition,
-            behavior: 'auto'
+            behavior: "auto",
           });
         }, 100);
       });
@@ -213,7 +205,7 @@ const HomePage = () => {
   return (
     <div className="bg-gray-100 min-h-screen py-6">
       <div className="container mx-auto px-4">
-        <Spin spinning={loading} size='large'>
+        <Spin spinning={loading} size="large">
           <BookList
             books={books}
             loading={loading}
@@ -226,4 +218,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;

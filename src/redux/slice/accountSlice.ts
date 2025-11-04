@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { callFetchAccount } from "./../../api/services";
+import { callFetchAccount } from "api/services";
 
 // First, create the thunk
 export const fetchAccount = createAsyncThunk(
@@ -9,14 +9,41 @@ export const fetchAccount = createAsyncThunk(
     return response.data;
   }
 );
+
+interface IState {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  isRefreshToken: boolean;
+  errorRefreshToken: string;
+  user: {
+    id: number;
+    email: string;
+    fullName: string;
+    image: string;
+    role: {
+      id?: string;
+      name?: string;
+      permissions?: {
+        id: string;
+        name: string;
+        apiPath: string;
+        method: string;
+        module: string;
+      }[];
+    };
+  };
+  activeMenu: string;
+}
+
 const token = localStorage.getItem("access_token");
-const initialState = {
+
+const initialState: IState = {
   isAuthenticated: false,
   isLoading: !!token,
   isRefreshToken: false,
   errorRefreshToken: "",
   user: {
-    id: "",
+    id: 0,
     email: "",
     fullName: "",
     image: "",
@@ -51,12 +78,13 @@ export const accountSlide = createSlice({
       if (!action?.payload?.role) state.user.role = {};
       state.user.role.permissions = action?.payload?.role?.permissions ?? [];
     },
-    setLogoutAction: (state, action) => {
+    setLogoutAction: (state) => {
       state.isAuthenticated = false;
       state.user = {
-        id: "",
+        id: 0,
         email: "",
         fullName: "",
+        image: "",
         role: {
           id: "",
           name: "",
@@ -71,7 +99,7 @@ export const accountSlide = createSlice({
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
-    builder.addCase(fetchAccount.pending, (state, action) => {
+    builder.addCase(fetchAccount.pending, (state) => {
       state.isLoading = true;
     });
 
@@ -89,7 +117,7 @@ export const accountSlide = createSlice({
       }
     });
 
-    builder.addCase(fetchAccount.rejected, (state, action) => {
+    builder.addCase(fetchAccount.rejected, (state) => {
       state.isAuthenticated = false;
       state.isLoading = false;
     });

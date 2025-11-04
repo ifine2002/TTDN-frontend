@@ -6,7 +6,6 @@ import {
   Rate,
   Button,
   Divider,
-  Input,
   message,
   Spin,
 } from "antd";
@@ -15,45 +14,40 @@ import {
   HeartOutlined,
   HeartFilled,
 } from "@ant-design/icons";
-import { callGetBookDetailById } from "../../../api/services";
+import { callGetBookDetailById } from "api/services";
 import { useParams } from "react-router-dom";
-import "./../../../styles/BookDetail.scss";
-import { useAppSelector, useAppDispatch } from "../../../redux/hooks";
-import ActionReview from "../review/ActionReview";
-import ListReview from "../review/ListReview";
+import "styles/BookDetail.scss";
+import { useAppSelector, useAppDispatch } from "redux/hooks";
+import ActionReview from "components/client/review/ActionReview";
+import ListReview from "components/client/review/ListReview";
 import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
-import {
-  likeBook,
-  unlikeBook,
-  fetchFavorite,
-} from "../../../redux/slice/favoriteSlice";
+import SockJS from "sockjs-client";
+import { likeBook, unlikeBook, fetchFavorite } from "redux/slice/favoriteSlice";
+import { IBook, IReviews, IStars } from "@/types/backend";
 
 const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
 
 const BookDetail = () => {
-  const [book, setBook] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [book, setBook] = useState<IBook>();
+  const [loading, setLoading] = useState<boolean>(true);
   const { id } = useParams();
 
   const user = useAppSelector((state) => state.account.user);
   const dispatch = useAppDispatch();
 
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [listReview, setListReview] = useState([]);
-  const [userReview, setUserReview] = useState(null);
-  const [stars, setStart] = useState(null);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>("");
+  const [listReview, setListReview] = useState<IReviews[]>([]);
+  const [userReview, setUserReview] = useState<IReviews | null>(null);
+  const [stars, setStart] = useState<IStars>();
 
   const favoriteBooks = useAppSelector((state) => state.favorite.favoriteBooks);
-  const isFavorite = favoriteBooks.includes(book?.id);
 
   const fetchBookDetail = useCallback(
     async (showLoading = true) => {
       try {
         if (showLoading) setLoading(true);
-        const response = await callGetBookDetailById(id);
+        const response = await callGetBookDetailById(id!);
         setBook(response.data);
         setListReview(response.data.reviews);
         setStart(response.data.stars);
@@ -73,7 +67,7 @@ const BookDetail = () => {
   }, [id, fetchBookDetail]);
 
   useEffect(() => {
-    if (user && user.id !== "") {
+    if (user && user.id !== 0) {
       dispatch(fetchFavorite({ query: "" }));
     }
   }, [user, dispatch]);
@@ -99,7 +93,7 @@ const BookDetail = () => {
     const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: function (str) {},
+      debug: function () {},
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -111,7 +105,7 @@ const BookDetail = () => {
           const notification = JSON.parse(message.body);
           console.log("BookDetail nhận thông báo WebSocket:", notification);
 
-          const { action, data, timestamp } = notification;
+          const { action, data } = notification;
 
           switch (action) {
             case "create":
@@ -144,7 +138,7 @@ const BookDetail = () => {
     };
   }, [id, user?.id, fetchBookDetail]);
 
-  const handleReviewCreateOrUpdate = (reviewData) => {
+  const handleReviewCreateOrUpdate = (reviewData: IReviews) => {
     console.log("Xử lý cập nhật review:", reviewData);
 
     setListReview((prevReviews) => {
@@ -173,7 +167,7 @@ const BookDetail = () => {
     }
   };
 
-  const handleReviewDelete = (userId) => {
+  const handleReviewDelete = (userId: number) => {
     console.log("Xử lý xóa review của user:", userId);
 
     setListReview((prevReviews) =>
@@ -198,10 +192,11 @@ const BookDetail = () => {
   if (!book) {
     return <div>Không tìm thấy sách</div>;
   }
+  const isFavorite = favoriteBooks.includes(book?.id);
 
   const toggleFavorite = async () => {
     try {
-      if (!user || user.id === "") {
+      if (!user || user.id === 0) {
         message.warning("Vui lòng đăng nhập để yêu thích sách");
         return;
       }
@@ -261,12 +256,12 @@ const BookDetail = () => {
           </div>
 
           <div className="book-rating">
-            <Rate allowHalf disabled value={stars.averageRating} />
+            <Rate allowHalf disabled value={stars?.averageRating} />
             <Text className="rating-count">
-              {stars.averageRating.toFixed(1)}
+              {stars?.averageRating.toFixed(1)}
             </Text>
             <Text className="reviews-count">
-              ({stars.ratingCount} đánh giá)
+              ({stars?.ratingCount} đánh giá)
             </Text>
           </div>
 
@@ -290,7 +285,7 @@ const BookDetail = () => {
               </Col>
               <Col span={8}>
                 <Text strong>Ngày xuất bản</Text>
-                <div>{book.publishedDate}</div>
+                <div>{book.publishedDate.toString()}</div>
               </Col>
             </Row>
           </div>

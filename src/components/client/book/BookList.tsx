@@ -1,11 +1,28 @@
-import React, { useRef, useEffect } from 'react';
-import { Row, Col, Spin, Empty, Button, InputNumber, Select } from 'antd';
-import BookCard from './BookCard';
-import SimpleBookCard from './SimpleBookCard';
+import { useRef, useEffect } from "react";
+import { Row, Col, Spin, Empty, Button, InputNumber, Select } from "antd";
+import BookCard from "./BookCard";
+import SimpleBookCard from "./SimpleBookCard";
+import { IPagination, IPost } from "types/backend";
 
-const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange }) => {
-  const loadMoreRef = useRef(null);
-  const observerRef = useRef(null);
+interface IProps {
+  books: IPost[];
+  loading: boolean;
+  pagination: IPagination;
+  onLoadMore: () => void;
+  simple?: boolean;
+  onPageChange?: (page: number, pageSize: number) => void;
+}
+
+const BookList = ({
+  books,
+  loading,
+  pagination,
+  onLoadMore,
+  simple,
+  onPageChange,
+}: IProps) => {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Thiết lập Intersection Observer khi component mount
   useEffect(() => {
@@ -15,13 +32,23 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
     }
 
     // Tạo observer mới nếu có ref và còn trang để tải
-    if (loadMoreRef.current && pagination && pagination.page <= pagination.totalPages) {
+    if (
+      loadMoreRef.current &&
+      pagination &&
+      pagination.page <= pagination.totalPages
+    ) {
       observerRef.current = new IntersectionObserver(
         (entries) => {
           const [entry] = entries;
           // Nếu phần tử trong viewport và còn trang để tải và không đang tải
-          if (entry.isIntersecting && !loading && pagination.page <= pagination.totalPages) {
-            console.log('Load more element is visible, triggering load more...');
+          if (
+            entry.isIntersecting &&
+            !loading &&
+            pagination.page <= pagination.totalPages
+          ) {
+            console.log(
+              "Load more element is visible, triggering load more..."
+            );
             onLoadMore();
           }
         },
@@ -29,7 +56,7 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
           // Trigger khi phần tử hiển thị ít nhất 10% trong viewport
           threshold: 0.1,
           // Mở rộng vùng phát hiện 200px dưới viewport
-          rootMargin: '0px 0px 200px 0px'
+          rootMargin: "0px 0px 200px 0px",
         }
       );
 
@@ -59,17 +86,17 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
     // Phân trang dạng custom
     const { page, pageSize, totalElements } = pagination || {};
     const totalPages = pagination?.totalPages || 1;
-    const from = totalElements === 0 ? 0 : (pageSize * (page - 1)) + 1;
+    const from = totalElements === 0 ? 0 : pageSize * (page - 1) + 1;
     const to = Math.min(page * pageSize, totalElements);
     const pageOptions = [4, 8, 12, 16, 20];
 
-    const handlePageChange = (value) => {
-      if (onPageChange) {
+    const handlePageChange = (value: number | null) => {
+      if (onPageChange && value !== null) {
         onPageChange(value, pageSize);
       }
     };
 
-    const handlePageSizeChange = (value) => {
+    const handlePageSizeChange = (value: number) => {
       if (onPageChange) {
         onPageChange(1, value); // reset về trang 1 khi đổi pageSize
       }
@@ -80,7 +107,10 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
         <div className="w-full overflow-x-auto">
           <div className="flex gap-6 min-w-max">
             {books.map((book, index) => (
-              <div key={`${book.bookId}-${index}`} className="w-[200px] flex-shrink-0">
+              <div
+                key={`${book.bookId}-${index}`}
+                className="w-[200px] flex-shrink-0"
+              >
                 <SimpleBookCard book={book} />
               </div>
             ))}
@@ -96,8 +126,10 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
               size="small"
               style={{ width: 90 }}
             >
-              {pageOptions.map(opt => (
-                <Select.Option key={opt} value={opt}>{opt} sách</Select.Option>
+              {pageOptions.map((opt) => (
+                <Select.Option key={opt} value={opt}>
+                  {opt} sách
+                </Select.Option>
               ))}
             </Select>
           </div>
@@ -151,7 +183,7 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
           <div
             ref={loadMoreRef}
             className="w-full flex justify-center py-6 mt-4"
-            style={{ minHeight: '100px' }}
+            style={{ minHeight: "100px" }}
           >
             {loading ? (
               <Spin size="large" tip="Đang tải sách..." />
@@ -180,4 +212,4 @@ const BookList = ({ books, loading, pagination, onLoadMore, simple, onPageChange
   );
 };
 
-export default BookList; 
+export default BookList;
