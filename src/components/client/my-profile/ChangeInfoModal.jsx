@@ -1,11 +1,20 @@
-import { ModalForm, ProFormText, ProFormSelect, ProFormDatePicker } from '@ant-design/pro-components';
-import { Upload, Avatar, Button, Form, message, Tabs } from 'antd';
-import { UserOutlined, PlusOutlined } from '@ant-design/icons';
-import { useState, useEffect, useRef } from 'react';
-import { callFetchUserDetail, callUpdateUserProfile, callChangePassword } from "./../../../api/services";
-import dayjs from 'dayjs';
-import '../../../styles/ChangeInfoModal.scss';
-import { isMobile } from 'react-device-detect';
+import {
+  ModalForm,
+  ProFormText,
+  ProFormSelect,
+  ProFormDatePicker,
+} from "@ant-design/pro-components";
+import { Upload, Avatar, Button, Form, message, Tabs } from "antd";
+import { UserOutlined, PlusOutlined } from "@ant-design/icons";
+import { useState, useEffect, useRef } from "react";
+import {
+  callFetchUserDetail,
+  callUpdateUserProfile,
+  callChangePassword,
+} from "./../../../api/services";
+import dayjs from "dayjs";
+import "styles/change.info.modal.scss";
+import { isMobile } from "react-device-detect";
 
 const { TabPane } = Tabs;
 
@@ -21,23 +30,23 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
   useEffect(() => {
     if (editProfileVisible && id) {
       callFetchUserDetail(id)
-        .then(res => {
+        .then((res) => {
           const data = res.data;
           form.setFieldsValue({
-            fullName: data.fullName || '',
-            gender: data.gender || '',
+            fullName: data.fullName || "",
+            gender: data.gender || "",
             userDOB: data.userDOB ? dayjs(data.userDOB) : null,
-            address: data.address || '',
-            phone: data.phone || '',
+            address: data.address || "",
+            phone: data.phone || "",
           });
           if (data.image) {
             setFileList([
               {
-                uid: '-1',
-                name: 'avatar.png',
-                status: 'done',
+                uid: "-1",
+                name: "avatar.png",
+                status: "done",
                 url: data.image,
-              }
+              },
             ]);
             setAvatarUrl(data.image);
           } else {
@@ -46,7 +55,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
           }
           setIsDeleteImage(false);
         })
-        .catch(err => {});
+        .catch((err) => {});
     }
     if (!editProfileVisible) {
       form.resetFields();
@@ -58,13 +67,13 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
 
   // Validate file trước khi upload
   const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
     if (!isJpgOrPng) {
-      message.error('Bạn chỉ có thể tải lên file JPG/PNG!');
+      message.error("Bạn chỉ có thể tải lên file JPG/PNG!");
     }
     const isLt10M = file.size / 1024 / 1024 < 10;
     if (!isLt10M) {
-      message.error('Hình ảnh phải nhỏ hơn 10MB!');
+      message.error("Hình ảnh phải nhỏ hơn 10MB!");
     }
     return isJpgOrPng && isLt10M;
   };
@@ -91,7 +100,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
     setIsDeleteImage(false);
     setEditProfileVisible(false);
     setActiveModalTab("change-info");
-  }
+  };
 
   const handleFinish = async (values) => {
     if (activeModalTab === "change-info") {
@@ -110,9 +119,9 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
       };
       const res = await callUpdateUserProfile(payload);
       if (res && res.data) {
-        message.success('Cập nhật thành công!');
+        message.success("Cập nhật thành công!");
       } else {
-        message.error('Cập nhật thất bại!');
+        message.error("Cập nhật thất bại!");
       }
     }
   };
@@ -121,37 +130,43 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
     try {
       const res = await callChangePassword(values);
       if (res && res.status === 200) {
-        message.success('Đổi mật khẩu thành công!');
+        message.success("Đổi mật khẩu thành công!");
         passwordForm.resetFields();
       } else {
-        message.error('Đổi mật khẩu thất bại!');
+        message.error("Đổi mật khẩu thất bại!");
       }
     } catch (error) {
-      message.error('Đổi mật khẩu thất bại!');
+      message.error("Đổi mật khẩu thất bại!");
     }
   };
 
   return (
     <ModalForm
-      title={<span className="text-2xl font-bold flex justify-center items-center mb-2">Quản lý tài khoản</span>}
+      title={
+        <span className="text-2xl font-bold flex justify-center items-center mb-2">
+          Quản lý tài khoản
+        </span>
+      }
       open={editProfileVisible}
-      style={{minHeight: '500px'}}
+      style={{ minHeight: "500px" }}
       modalProps={{
         destroyOnClose: true,
-        onCancel: () => {handleReset()},
+        onCancel: () => {
+          handleReset();
+        },
         style: { top: 30 },
         afterClose: () => handleReset(),
         destroyOnClose: true,
-        width: isMobile ? "100%" : '800px',
+        width: isMobile ? "100%" : "800px",
         keyboard: false,
         maskClosable: true,
         cancelText: "Hủy",
-        getContainer: false
+        getContainer: false,
       }}
       submitter={{
         render: (props, dom) => {
           return activeModalTab === "change-info" ? dom : [];
-        }
+        },
       }}
       scrollToFirstError={true}
       preserve={false}
@@ -179,7 +194,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
               />
               <Upload
                 ref={uploadRef}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 beforeUpload={beforeUpload}
                 onChange={handleChangeUpload}
                 onRemove={handleRemove}
@@ -198,14 +213,16 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                   size="small"
                   className="mt-2"
                   onClick={() => {
-                    document.querySelector('input[type=file]').click();
+                    document.querySelector("input[type=file]").click();
                   }}
                 >
                   Thêm
                 </Button>
               )}
               {fileList.length === 1 && (
-                <Button danger type="link" onClick={handleRemove}>Xóa ảnh</Button>
+                <Button danger type="link" onClick={handleRemove}>
+                  Xóa ảnh
+                </Button>
               )}
             </div>
             {/* Cột phải: Thông tin cá nhân */}
@@ -214,29 +231,29 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                 name="fullName"
                 label="Họ và tên"
                 placeholder="Nhập họ tên"
-                rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
               />
               <ProFormSelect
                 name="gender"
                 label="Giới tính"
                 options={[
-                  { label: 'Nam', value: 'MALE' },
-                  { label: 'Nữ', value: 'FEMALE' },
-                  { label: 'Khác', value: 'OTHER' },
+                  { label: "Nam", value: "MALE" },
+                  { label: "Nữ", value: "FEMALE" },
+                  { label: "Khác", value: "OTHER" },
                 ]}
                 placeholder="Chọn giới tính"
-                rules={[{ required: true, message: 'Vui lòng chọn giới tính' }]}
+                rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}
               />
               <ProFormDatePicker
                 name="userDOB"
                 label="Ngày sinh"
                 placeholder="Chọn ngày sinh"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
+                rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}
               />
               <ProFormText
                 label="Phone"
                 name="phone"
-                rules={[{ required: true, message: 'Vui lòng không bỏ trống' }]}
+                rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
                 placeholder="Nhập phone"
               />
               <ProFormText
@@ -253,14 +270,14 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
             onFinish={handleChangePassword}
             layout="vertical"
           >
-            <div className='flex flex-col gap-4 justify-center items-center mt-4'>
+            <div className="flex flex-col gap-4 justify-center items-center mt-4">
               <ProFormText.Password
                 name="oldPassword"
                 label="Mật khẩu cũ"
                 fieldProps={{
-                  style: { height: '40px' }
+                  style: { height: "40px" },
                 }}
-                rules={[{ required: true, message: 'Vui lòng không bỏ trống' }]}
+                rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
                 placeholder="Nhập mật khẩu cũ"
                 width={420}
               />
@@ -268,9 +285,9 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                 name="newPassword"
                 label="Mật khẩu mới"
                 fieldProps={{
-                  style: { height: '40px' }
+                  style: { height: "40px" },
                 }}
-                rules={[{ required: true, message: 'Vui lòng không bỏ trống' }]}
+                rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
                 placeholder="Nhập mật khẩu mới"
                 width={420}
               />
@@ -278,16 +295,18 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                 name="confirmPassword"
                 label="Xác nhận mật khẩu"
                 fieldProps={{
-                  style: { height: '40px' }
+                  style: { height: "40px" },
                 }}
                 rules={[
-                  { required: true, message: 'Vui lòng không bỏ trống' },
+                  { required: true, message: "Vui lòng không bỏ trống" },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      if (!value || getFieldValue('newPassword') === value) {
+                      if (!value || getFieldValue("newPassword") === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                      return Promise.reject(
+                        new Error("Mật khẩu xác nhận không khớp!")
+                      );
                     },
                   }),
                 ]}

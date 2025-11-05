@@ -5,7 +5,7 @@ import ActionReview from "../review/ActionReview";
 import ListReview from "../review/ListReview";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
-import "./../../../styles/BookDetailModal.scss";
+import "styles/book.detail.modal.scss";
 
 const { Title, Text, Paragraph } = Typography;
 

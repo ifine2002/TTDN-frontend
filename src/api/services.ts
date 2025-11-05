@@ -263,7 +263,7 @@ export const callCreateBook = (data: IBook) => {
   if (data.categoryIds) {
     if (Array.isArray(data.categoryIds)) {
       data.categoryIds.forEach((categoryId) => {
-        formData.append("categoryIds", categoryId);
+        formData.append("categoryIds", categoryId.toString());
       });
     } else {
       formData.append("categoryIds", data.categoryIds);
@@ -310,7 +310,7 @@ export const callUpdateBook = (data: IBook, id: string) => {
   if (data.categoryIds) {
     if (Array.isArray(data.categoryIds)) {
       data.categoryIds.forEach((categoryId) => {
-        formData.append("categoryIds", categoryId);
+        formData.append("categoryIds", categoryId.toString());
       });
     } else {
       formData.append("categoryIds", data.categoryIds);
@@ -385,7 +385,7 @@ export const callUploadBook = (data: IBook) => {
   if (data.categoryIds) {
     if (Array.isArray(data.categoryIds)) {
       data.categoryIds.forEach((categoryId) => {
-        formData.append("categoryIds", categoryId);
+        formData.append("categoryIds", categoryId.toString());
       });
     } else {
       formData.append("categoryIds", data.categoryIds);
@@ -664,7 +664,7 @@ Module Review
  */
 export const callCreateReview = (
   review: { stars: number; comment: string },
-  bookId: string
+  bookId: number
 ) => {
   return axios.post<IBackendRes<null>>(`/review/${bookId}`, {
     stars: review.stars,

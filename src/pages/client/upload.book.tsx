@@ -12,6 +12,7 @@ import {
   notification,
   Image,
   Avatar,
+  UploadFile,
 } from "antd";
 import {
   CloudUploadOutlined,
@@ -19,28 +20,44 @@ import {
   PlusOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { callUploadBook, callFetchCategoriesUpload } from "../../api/services";
-import SockJS from "sockjs-client/dist/sockjs";
+import { callUploadBook, callFetchCategoriesUpload } from "api/services";
+import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import "../../styles/UploadBook.scss";
-import { useAppSelector } from "../../redux/hooks";
+import "styles/upload.book.scss";
+import { useAppSelector } from "redux/hooks";
+import { RcFile, UploadChangeParam } from "antd/es/upload";
+import { IBook, ICategory } from "@/types/backend";
+import type { Dayjs } from "dayjs";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
+interface IUploadFileWithOrigin extends UploadFile {
+  originFileObj?: RcFile;
+}
+
+interface IBookFormValues {
+  name: string;
+  description: string;
+  author: string;
+  language: string;
+  bookFormat: string;
+  publishedDate: Dayjs;
+  bookSaleLink: string;
+  categoryIds: number[];
+}
+
 const UploadBookPage = () => {
-  const navigate = useNavigate();
   const user = useAppSelector((state) => state.account.user);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<IBookFormValues>();
 
   // State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [stompClient, setStompClient] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fileList, setFileList] = useState<IUploadFileWithOrigin[]>([]);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [stompClient, setStompClient] = useState<Client | null>(null);
 
   // Fetch categories
   useEffect(() => {
@@ -63,7 +80,7 @@ const UploadBookPage = () => {
     const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: function (str) {
+      debug: function () {
         // console.log(str);
       },
       reconnectDelay: 5000,
@@ -103,7 +120,7 @@ const UploadBookPage = () => {
     setIsModalOpen(false);
   };
 
-  const beforeUpload = (file) => {
+  const beforeUpload = (file: RcFile) => {
     const isJpgOrPng =
       file.type === "image/jpeg" ||
       file.type === "image/png" ||
@@ -119,12 +136,14 @@ const UploadBookPage = () => {
   };
 
   // Upload image
-  const handleChangeUpload = ({ fileList }) => {
+  const handleChangeUpload = ({
+    fileList,
+  }: UploadChangeParam<IUploadFileWithOrigin>) => {
     setFileList(fileList);
   };
 
   // Submit form
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: IBookFormValues) => {
     try {
       setLoading(true);
 
@@ -134,7 +153,7 @@ const UploadBookPage = () => {
         return;
       }
 
-      const formData = {
+      const formData: IBook = {
         name: values.name,
         description: values.description,
         author: values.author,
@@ -166,7 +185,8 @@ const UploadBookPage = () => {
         setFileList([]);
         setIsModalOpen(false);
       }
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("Lỗi khi tạo sách:", error);
       notification.error({
         message: "Có lỗi xảy ra",
@@ -243,7 +263,10 @@ const UploadBookPage = () => {
                   <Image
                     src={
                       fileList[0].thumbUrl ||
-                      URL.createObjectURL(fileList[0].originFileObj)
+                      (fileList[0].originFileObj
+                        ? URL.createObjectURL(fileList[0].originFileObj)
+                        : "")
+                      // URL.createObjectURL(fileList[0].originFileObj)
                     }
                     alt="Book cover"
                     style={{ maxHeight: "100%", maxWidth: "100%" }}

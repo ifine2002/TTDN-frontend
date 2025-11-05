@@ -65,18 +65,18 @@ export interface IUser {
 }
 
 export interface IBook {
-  id: number;
+  id?: number;
   name: string;
   description: string;
-  image: string;
+  image?: string | File;
   publishedDate: string | Date;
   author: string;
   language: string;
   bookFormat: string;
   bookSaleLink: string;
-  status: string;
+  status?: string;
   deleteImage?: boolean;
-  categoryIds?: string[];
+  categoryIds: number[];
   categories?: {
     id: string;
     name: string;

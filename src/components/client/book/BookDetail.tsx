@@ -16,14 +16,14 @@ import {
 } from "@ant-design/icons";
 import { callGetBookDetailById } from "api/services";
 import { useParams } from "react-router-dom";
-import "styles/BookDetail.scss";
+import "styles/book.detail.scss";
 import { useAppSelector, useAppDispatch } from "redux/hooks";
 import ActionReview from "components/client/review/ActionReview";
 import ListReview from "components/client/review/ListReview";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { likeBook, unlikeBook, fetchFavorite } from "redux/slice/favoriteSlice";
-import { IBook, IReviews, IStars } from "@/types/backend";
+import { IBook, IReviews, IStars } from "types/backend";
 
 const { Title, Text, Paragraph } = Typography;
 
