@@ -2,26 +2,63 @@ import {
   ModalForm,
   ProForm,
   ProFormDatePicker,
-  ProFormDigit,
   ProFormSelect,
   ProFormText,
 } from "@ant-design/pro-components";
-import { Col, Form, Row, message, notification, Upload } from "antd";
+import {
+  Col,
+  Form,
+  Row,
+  message,
+  notification,
+  Upload,
+  UploadFile,
+} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { isMobile } from "react-device-detect";
 import { useState, useEffect } from "react";
-import {
-  callCreateUser,
-  callFetchRole,
-  callUpdateUser,
-} from "./../../../api/services";
-import DebounceSelect from "../../share/DebounceSelect";
+import { callCreateUser, callFetchRole, callUpdateUser } from "api/services";
+import { DebounceSelect } from "@/components/share/debounce.select";
+import { IUser } from "@/types/backend";
+import { RcFile, UploadChangeParam } from "antd/es/upload";
+import { toISODate } from "@/utils/convert.date";
+import { UploadProps } from "antd/lib";
 
-const ModalUser = (props) => {
+interface IProps {
+  openModal: boolean;
+  setOpenModal: (v: boolean) => void;
+  reloadTable: () => void;
+  dataInit?: IUser | null;
+  setDataInit: (v: IUser | null) => void;
+}
+
+interface IRoleOption {
+  label: string;
+  value: number;
+  key: number;
+}
+
+interface IUploadFileWithOrigin extends UploadFile {
+  originFileObj?: RcFile;
+}
+
+interface IUserFormValues {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  gender: string;
+  userDOB: Date | string;
+  address: string;
+  status: string;
+  role: IRoleOption;
+}
+
+const ModalUser = (props: IProps) => {
   const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
-  const [roles, setRoles] = useState([]);
-  const [fileList, setFileList] = useState([]);
-  const [isDeleteImage, setIsDeleteImage] = useState(false);
+  const [roles, setRoles] = useState<IRoleOption[]>([]);
+  const [fileList, setFileList] = useState<IUploadFileWithOrigin[]>([]);
+  const [isDeleteImage, setIsDeleteImage] = useState<boolean>(false);
 
   const [form] = Form.useForm();
 
@@ -49,7 +86,7 @@ const ModalUser = (props) => {
             uid: "-1",
             name: "image.png",
             status: "done",
-            url: dataInit.image,
+            url: dataInit.image.toString(),
           },
         ]);
       } else {
@@ -60,7 +97,9 @@ const ModalUser = (props) => {
     }
   }, [dataInit]);
 
-  const handleChangeUpload = ({ fileList }) => {
+  const handleChangeUpload = ({
+    fileList,
+  }: UploadChangeParam<IUploadFileWithOrigin>) => {
     if (fileList.length > 0 && fileList[0].originFileObj) {
       setIsDeleteImage(false);
     }
@@ -68,7 +107,7 @@ const ModalUser = (props) => {
     setFileList(fileList);
   };
 
-  const beforeUpload = (file) => {
+  const beforeUpload = (file: RcFile) => {
     const isJpgOrPng =
       file.type === "image/jpeg" ||
       file.type === "image/png" ||
@@ -91,7 +130,7 @@ const ModalUser = (props) => {
     return true;
   };
 
-  const submitUser = async (valuesForm) => {
+  const submitUser = async (valuesForm: IUserFormValues) => {
     const {
       fullName,
       email,
@@ -103,77 +142,72 @@ const ModalUser = (props) => {
       status,
       role,
     } = valuesForm;
-    try {
-      if (dataInit?.id) {
-        //update
-        const user = {
-          fullName,
-          phone,
-          gender,
-          userDOB,
-          address,
-          status,
-          roleId: role.value,
-        };
+    const userDOBISO = toISODate(userDOB);
+    if (dataInit?.id) {
+      //update
+      const user = {
+        fullName,
+        phone,
+        gender,
+        userDOB: userDOBISO,
+        address,
+        status,
+        role: { id: role.value, name: "" },
+        image: fileList[0]?.originFileObj,
+        deleteImage: isDeleteImage,
+      };
 
-        if (fileList.length > 0 && fileList[0].originFileObj) {
-          user.image = fileList[0].originFileObj;
-        }
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        user.image = fileList[0].originFileObj;
+      }
 
-        if (isDeleteImage) {
-          user.deleteImage = true;
-        }
+      if (isDeleteImage) {
+        user.deleteImage = true;
+      }
 
-        const res = await callUpdateUser(user, dataInit.id);
+      const res = await callUpdateUser(user, dataInit.id);
+      if (res && res.data) {
         message.success("Cập nhật user thành công");
         handleReset();
         reloadTable();
       } else {
-        //create
-        const user = {
-          fullName,
-          email,
-          password,
-          phone,
-          gender,
-          userDOB,
-          address,
-          status,
-          roleId: role.value,
-        };
+        notification.error({
+          message: "Có lỗi xảy ra",
+          description: res.message,
+          duration: 5,
+        });
+      }
+    } else {
+      //create
+      const user = {
+        fullName,
+        email,
+        password,
+        phone,
+        gender,
+        userDOB: userDOBISO,
+        address,
+        status,
+        image: fileList[0]?.originFileObj,
+        role: { id: role.value, name: "" },
+      };
 
-        if (fileList.length > 0 && fileList[0].originFileObj) {
-          user.image = fileList[0].originFileObj;
-        }
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        user.image = fileList[0].originFileObj;
+      }
 
-        const res = await callCreateUser(user);
+      const res = await callCreateUser(user);
+      if (res && res.data) {
         message.success("Thêm mới user thành công");
         handleReset();
         reloadTable();
-      }
-    } catch (error) {
-      let errorMessage = "Có lỗi xảy ra";
-      if (error.response) {
-        if (error.response.data?.message) {
-          if (Array.isArray(error.response.data.message)) {
-            errorMessage = error.response.data.message.join(", ");
-          } else {
-            errorMessage = error.response.data.message;
-          }
-        } else {
-          errorMessage = error.message;
-        }
-      } else if (error.request) {
-        errorMessage = "Không nhận được phản hồi từ máy chủ";
       } else {
-        errorMessage = error.message;
+        notification.error({
+          message: "Có lỗi xảy ra",
+          description: res.message,
+          duration: 5,
+        });
       }
-
-      notification.error({
-        message: "Có lỗi xảy ra",
-        description: errorMessage,
-        duration: 5,
-      });
     }
   };
 
@@ -186,7 +220,7 @@ const ModalUser = (props) => {
     setOpenModal(false);
   };
 
-  async function fetchRoleList(name) {
+  async function fetchRoleList(name: string) {
     const res = await callFetchRole(`page=0&size=100&filter=name~'${name}'`);
     if (res && res.data) {
       const list = res.data.result;
@@ -199,6 +233,17 @@ const ModalUser = (props) => {
       return temp;
     } else return [];
   }
+
+  const dummyRequest: UploadProps["customRequest"] = (options) => {
+    const {
+      onSuccess /*, onError, onProgress, file, filename, data, headers, withCredentials*/,
+    } = options;
+
+    // Mô phỏng upload thành công
+    setTimeout(() => {
+      onSuccess?.("ok" as any); // body có thể là bất kỳ, onSuccess param là optional
+    }, 0);
+  };
 
   return (
     <>
@@ -300,7 +345,7 @@ const ModalUser = (props) => {
                 value={roles}
                 placeholder="Chọn vai trò"
                 fetchOptions={fetchRoleList}
-                onChange={(newValue) => {
+                onChange={(newValue: any) => {
                   if (newValue?.length === 0 || newValue?.length === 1) {
                     setRoles(newValue);
                   }
@@ -352,11 +397,7 @@ const ModalUser = (props) => {
                 onChange={handleChangeUpload}
                 onRemove={handleRemove}
                 maxCount={1}
-                customRequest={({ file, onSuccess }) => {
-                  setTimeout(() => {
-                    onSuccess("ok");
-                  }, 0);
-                }}
+                customRequest={dummyRequest}
               >
                 {fileList.length >= 1 ? null : (
                   <div>

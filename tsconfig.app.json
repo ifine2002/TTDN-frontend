@@ -22,6 +22,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
 
     "baseUrl": ".",
     "paths": {
@@ -33,7 +34,8 @@
       "utils/*": ["./src/utils/*"],
       "redux/*": ["./src/redux/*"],
       "api/*": ["./src/api/*"],
-      "types/*": ["./src/types/*"]
+      "types/*": ["./src/types/*"],
+      "hooks/*": ["./src/hooks/*"]
     }
   },
   "include": ["src"]

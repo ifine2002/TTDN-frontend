@@ -21,8 +21,6 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { callUploadBook, callFetchCategoriesUpload } from "api/services";
-import SockJS from "sockjs-client";
-import { Client } from "@stomp/stompjs";
 import "styles/upload.book.scss";
 import { useAppSelector } from "redux/hooks";
 import { RcFile, UploadChangeParam } from "antd/es/upload";
@@ -57,7 +55,6 @@ const UploadBookPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [fileList, setFileList] = useState<IUploadFileWithOrigin[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
-  const [stompClient, setStompClient] = useState<Client | null>(null);
 
   // Fetch categories
   useEffect(() => {
@@ -66,7 +63,8 @@ const UploadBookPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await callFetchCategoriesUpload("");
+      const query = `page=0&size=100&sort=createdAt,desc`;
+      const res = await callFetchCategoriesUpload(query);
       if (res && res.data) {
         setCategories(res.data.result);
       }
@@ -74,38 +72,6 @@ const UploadBookPage = () => {
       console.error("Lỗi khi lấy danh mục:", error);
     }
   };
-
-  // WebSocket connection
-  useEffect(() => {
-    const socket = new SockJS("http://localhost:8080/ws");
-    const client = new Client({
-      webSocketFactory: () => socket,
-      debug: function () {
-        // console.log(str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
-
-    client.onConnect = () => {
-      // console.log('Connected to WebSocket');
-    };
-
-    client.onStompError = (frame) => {
-      console.error("Broker reported error: " + frame.headers["message"]);
-      console.error("Additional details: " + frame.body);
-    };
-
-    client.activate();
-    setStompClient(client);
-
-    return () => {
-      if (client) {
-        client.deactivate();
-      }
-    };
-  }, []);
 
   // Open modal
   const showModal = () => {
@@ -168,19 +134,6 @@ const UploadBookPage = () => {
       const res = await callUploadBook(formData);
       if (res && res.data) {
         message.success("Tạo sách mới thành công, đang chờ phê duyệt!");
-        // Gửi thông báo đến admin thông qua WebSocket
-        if (stompClient && stompClient.connected) {
-          const notification = {
-            action: "create",
-            data: res.data,
-            timestamp: new Date().toISOString(),
-          };
-          stompClient.publish({
-            destination: "/topic/admin-books",
-            body: JSON.stringify(notification),
-          });
-        }
-
         form.resetFields();
         setFileList([]);
         setIsModalOpen(false);

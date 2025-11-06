@@ -95,18 +95,19 @@ const Header = () => {
         // Lọc các giá trị rỗng hoặc quá ngắn
         filter((value) => value.trim().length >= 2),
         // Chuyển đổi query thành API call và hủy các request cũ nếu có query mới
-        switchMap((value) => {
+        switchMap(async (value) => {
           setLoading(true);
           setPopoverVisible(true);
           const query = `page=0&size=${pageSize}&keyword=${encodeURIComponent(
             value.trim()
           )}`;
-          return callSearchHomeBook(query);
+          return await callSearchHomeBook(query);
         })
       )
       .subscribe({
         next: (res) => {
           if (res?.data) {
+            console.log(">>> check res: ", res);
             setSearchResults(res.data.result || []);
             setTotalItems(res.data.totalElements || 0);
           }
@@ -132,7 +133,7 @@ const Header = () => {
       const res = await callLogout();
       if (res && res.status === 200) {
         localStorage.removeItem("access_token");
-        dispatch(setLogoutAction({}));
+        dispatch(setLogoutAction());
         message.success("Đăng xuất thành công");
         navigate("/");
       }

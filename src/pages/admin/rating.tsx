@@ -1,39 +1,50 @@
-import DataTable from "./../../components/client/data-table/index";
-import { fetchUser } from "./../../redux/slice/userSlice";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
+import DataTable from "components/client/data-table/index";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Popconfirm, Space, message, notification } from "antd";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import dayjs from "dayjs";
-import { callDeleteUser, callFetchUserDetail } from "./../../api/services";
+import { callDeleteRating } from "api/services";
 import queryString from "query-string";
-import ViewDetailUser from "./../../components/admin/user/view.user";
 import { sfLike } from "spring-filter-query-builder";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import ModalUser from "../../components/admin/user/modal.user";
+import { fetchRating } from "redux/slice/ratingSlice";
+import ModalRating from "components/admin/rating/modal.rating";
+import { IRating, SortOrder } from "types/backend";
 
-const UserPage = () => {
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<
+    "userId" | "id" | "bookId" | "stars" | "createdAt" | "updatedAt",
+    SortOrder
+  >
+>;
+
+const RatingPage = () => {
+  const [dataInit, setDataInit] = useState<IRating | null>(null);
+  const actionRef = useRef<ActionType>();
+
   const [openModal, setOpenModal] = useState(false);
-  const [dataInit, setDataInit] = useState(null);
-  const [openViewDetail, setOpenViewDetail] = useState(false);
-  const [userDetail, setUserDetail] = useState(null);
-
-  const tableRef = useRef();
+  const isFetching = useAppSelector((state) => state.rating.isFetching);
+  const data = useAppSelector((state) => state.rating.data);
 
   const dispatch = useAppDispatch();
-  const isFetching = useAppSelector((state) => state.user.isFetching);
-  const data = useAppSelector((state) => state.user.data || {});
-  const users = useAppSelector((state) => state.user.result || []);
 
-  const handleDeleteUser = async (id) => {
+  const handleDeleteRating = async (id: number) => {
     if (id) {
-      const res = await callDeleteUser(id);
-      if (+res.status === 200) {
-        message.success("Xóa User thành công");
+      const res = await callDeleteRating(id);
+      if (res && res.status === 200) {
+        message.success("Xóa Follow thành công");
         reloadTable();
       } else {
         notification.error({
@@ -45,49 +56,44 @@ const UserPage = () => {
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const handleViewDetail = async (record) => {
-    const res = await callFetchUserDetail(record.id);
-    setUserDetail(res.data);
-    setOpenViewDetail(true);
-  };
-
-  const columns = [
+  const columns: ProColumns<IRating>[] = [
     {
       title: "Id",
       dataIndex: "id",
       width: 50,
+      sorter: true,
       render: (text, record, index, action) => {
         return <span>{record.id}</span>;
       },
-      hideInSearch: true,
+    },
+    {
+      title: "Stars",
+      dataIndex: "stars",
       sorter: true,
     },
     {
-      title: "Name",
-      dataIndex: "fullName",
+      title: "User Id",
+      dataIndex: "userId",
       sorter: true,
     },
     {
-      title: "Email",
-      dataIndex: "email",
+      title: "Book Id",
+      dataIndex: "bookId",
       sorter: true,
+      // fieldProps: {
+      //     placeholder: 'Tìm kiếm theo Following Id',
+      //     style: { marginLeft: 5 }
+      // },
     },
-
-    {
-      title: "Role",
-      dataIndex: ["role", "name"],
-      hideInSearch: true,
-    },
-
     {
       title: "CreatedAt",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
-      render: (text, record) => {
+      render: (text, record, index, action) => {
         return (
           <>
             {record.createdAt
@@ -103,7 +109,7 @@ const UserPage = () => {
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
-      render: (text, record) => {
+      render: (text, record, index, action) => {
         return (
           <>
             {record.updatedAt
@@ -118,7 +124,7 @@ const UserPage = () => {
       title: "Actions",
       hideInSearch: true,
       width: 50,
-      render: (_value, entity) => (
+      render: (_value, entity, _index, _action) => (
         <Space>
           <EditOutlined
             style={{
@@ -131,23 +137,15 @@ const UserPage = () => {
               setDataInit(entity);
             }}
           />
-
           <Popconfirm
             placement="leftTop"
-            title={"Xác nhận xóa user"}
-            description={"Bạn có chắc chắn muốn xóa user này ?"}
-            onConfirm={(e) => {
-              e.stopPropagation();
-              handleDeleteUser(entity.id);
-            }}
-            onCancel={(e) => e.stopPropagation()}
+            title={"Xác nhận xóa rating"}
+            description={"Bạn có chắc chắn muốn xóa rating này ?"}
+            onConfirm={() => handleDeleteRating(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
           >
-            <span
-              style={{ cursor: "pointer", margin: "0 10px" }}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <span style={{ cursor: "pointer", margin: "0 10px" }}>
               <DeleteOutlined
                 style={{
                   fontSize: 20,
@@ -161,24 +159,33 @@ const UserPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
-    if (params.fullName)
-      filterArray.push(`${sfLike("fullName", params.fullName)}`);
-    if (params.email) filterArray.push(`${sfLike("email", params.email)}`);
+    const filterArray = [];
+
+    if (params.id) filterArray.push(`${sfLike("id", params.id)}`);
+    if (params.stars) filterArray.push(`${sfLike("stars", params.stars)}`);
+    if (params.userId) filterArray.push(`${sfLike("user.id", params.userId)}`);
+    if (params.bookId) filterArray.push(`${sfLike("book.id", params.bookId)}`);
     query.filter = filterArray.join(" and ");
 
     if (!query.filter) delete query.filter;
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = ["fullName", "email", "id", "createdAt", "updatedAt"];
+    const fields: Array<keyof Sorter> = [
+      "id",
+      "stars",
+      "userId",
+      "bookId",
+      "createdAt",
+      "updatedAt",
+    ];
 
     if (sort) {
       for (const field of fields) {
@@ -198,19 +205,22 @@ const UserPage = () => {
 
     return temp;
   };
-
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
-        headerTitle="Danh sách Users"
+        actionRef={actionRef}
+        headerTitle="Danh sách Rating"
         rowKey="id"
         loading={isFetching}
         columns={columns}
-        dataSource={users}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchUser({ query }));
+        request={async (params, sort) => {
+          const query = buildQuery(params as QueryParams, sort as Sorter);
+          const res = await dispatch(fetchRating({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -228,43 +238,25 @@ const UserPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={() => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
-        onRow={(record) => {
-          return {
-            onClick: (event) => {
-              if (!event.target.closest(".ant-space")) {
-                handleViewDetail(record);
-              }
-            },
-            style: { cursor: "pointer" },
-          };
-        }}
+        toolBarRender={(_action, _rows) => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
-      <ModalUser
+      <ModalRating
         openModal={openModal}
         setOpenModal={setOpenModal}
         reloadTable={reloadTable}
         dataInit={dataInit}
         setDataInit={setDataInit}
       />
-      <ViewDetailUser
-        onClose={() => setOpenViewDetail(false)}
-        open={openViewDetail}
-        userDetail={userDetail}
-        setUserDetail={setUserDetail}
-      />
     </div>
   );
 };
 
-export default UserPage;
+export default RatingPage;

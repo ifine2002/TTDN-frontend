@@ -1,6 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Rate, Tag, Typography, Space, Avatar, Button, Tooltip, message } from 'antd';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Rate,
+  Tag,
+  Typography,
+  Space,
+  Avatar,
+  Button,
+  Tooltip,
+  message,
+} from "antd";
+import { Link } from "react-router-dom";
 import {
   BookOutlined,
   UserOutlined,
@@ -8,15 +18,19 @@ import {
   MessageOutlined,
   CalendarOutlined,
   ShoppingCartOutlined,
-  HeartFilled
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-import BookDetailModal from './BookDetailModal';
-import { useAppSelector, useAppDispatch } from '../../../redux/hooks';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client/dist/sockjs';
-import { callGetBookDetailById } from '../../../api/services';
-import { likeBook, unlikeBook, fetchFavorite } from '../../../redux/slice/favoriteSlice';
+  HeartFilled,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import BookDetailModal from "./BookDetailModal";
+import { useAppSelector, useAppDispatch } from "../../../redux/hooks";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client/dist/sockjs";
+import { callGetBookDetailById } from "../../../api/services";
+import {
+  likeBook,
+  unlikeBook,
+  fetchFavorite,
+} from "../../../redux/slice/favoriteSlice";
 
 // Tạo một WebSocket client toàn cục duy nhất
 let globalStompClient = null;
@@ -30,7 +44,7 @@ const initializeGlobalWebSocket = () => {
   }
 
   // console.log('Khởi tạo kết nối WebSocket toàn cục');
-  const socket = new SockJS('http://localhost:8080/ws');
+  const socket = new SockJS("http://localhost:8080/ws");
   const client = new Client({
     webSocketFactory: () => socket,
     reconnectDelay: 5000,
@@ -43,7 +57,7 @@ const initializeGlobalWebSocket = () => {
   };
 
   client.onStompError = (frame) => {
-    console.error(`WebSocket error toàn cục: ${frame.headers['message']}`);
+    console.error(`WebSocket error toàn cục: ${frame.headers["message"]}`);
   };
 
   client.onWebSocketClose = () => {
@@ -61,7 +75,7 @@ const initializeGlobalWebSocket = () => {
 // Hàm đăng ký theo dõi một chủ đề
 const subscribeToTopic = (topic, callback) => {
   if (!globalStompClient || !globalStompClient.connected) {
-    console.error('Không thể đăng ký: WebSocket chưa kết nối');
+    console.error("Không thể đăng ký: WebSocket chưa kết nối");
     return null;
   }
 
@@ -70,7 +84,7 @@ const subscribeToTopic = (topic, callback) => {
     const subscription = globalStompClient.subscribe(topic, callback);
     activeSubscriptions[topic] = {
       subscription,
-      count: 1
+      count: 1,
     };
     return subscription;
   } else {
@@ -100,18 +114,20 @@ const { Text, Title, Paragraph } = Typography;
 const BookCard = ({ book: initialBook }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [book, setBook] = useState(initialBook);
-  const defaultImage = 'https://placehold.co/300x400?text=No+Image';
-  const user = useAppSelector(state => state.account.user);
+  const defaultImage = "https://placehold.co/300x400?text=No+Image";
+  const user = useAppSelector((state) => state.account.user);
 
   const dispatch = useAppDispatch();
-  const favoriteBooks = useAppSelector(state => state.favorite.favoriteBooks);
+  const favoriteBooks = useAppSelector((state) => state.favorite.favoriteBooks);
   const isFavorite = favoriteBooks.includes(book.bookId);
-  const componentId = React.useRef(Math.random().toString(36).substring(2, 8)).current;
+  const componentId = React.useRef(
+    Math.random().toString(36).substring(2, 8)
+  ).current;
   const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     if (!initialBook) {
-      console.error('initialBook không tồn tại');
+      console.error("initialBook không tồn tại");
       return;
     }
     // console.log(`[BookCard ${componentId}] Khởi tạo với:`, initialBook);
@@ -119,7 +135,7 @@ const BookCard = ({ book: initialBook }) => {
 
   useEffect(() => {
     if (!initialBook || !initialBook.bookId) {
-      console.error('initialBook.bookId không tồn tại');
+      console.error("initialBook.bookId không tồn tại");
       return;
     }
 
@@ -146,7 +162,11 @@ const BookCard = ({ book: initialBook }) => {
           const { action, data } = notification;
           // console.log(`[BookCard ${componentId}] Nhận thông báo WebSocket: ${action}`, data);
 
-          if (action === "create" || action === "update" || action === "delete") {
+          if (
+            action === "create" ||
+            action === "update" ||
+            action === "delete"
+          ) {
             // console.log(`[BookCard ${componentId}] Cập nhật dữ liệu sau thông báo ${action}`);
             await fetchBookDetail();
           }
@@ -195,39 +215,39 @@ const BookCard = ({ book: initialBook }) => {
   }, [initialBook?.bookId, componentId, dispatch]);
 
   useEffect(() => {
-    if (user && user.id !== "") {
-      dispatch(fetchFavorite({ query: '' }));
+    if (user && user.id !== 0) {
+      dispatch(fetchFavorite({ query: "" }));
     }
   }, [user, dispatch]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return dayjs(date).format('DD/MM/YYYY HH:mm');
+    return dayjs(date).format("DD/MM/YYYY HH:mm");
   };
 
   const toggleFavorite = async () => {
     try {
-      if (!user || user.id == '') {
-        message.warning('Vui lòng đăng nhập để yêu thích sách');
+      if (!user || user.id == "") {
+        message.warning("Vui lòng đăng nhập để yêu thích sách");
         return;
       }
 
       if (isFavorite) {
         // Nếu đã yêu thích thì gọi API hủy yêu thích
         await dispatch(unlikeBook(book.bookId));
-        message.success('Đã bỏ yêu thích sách');
+        message.success("Đã bỏ yêu thích sách");
       } else {
         // Nếu chưa yêu thích thì gọi API yêu thích
         await dispatch(likeBook(book.bookId));
-        message.success('Đã thêm vào danh sách yêu thích');
+        message.success("Đã thêm vào danh sách yêu thích");
       }
 
       // Sau khi thao tác thành công, cập nhật lại danh sách sách yêu thích
-      dispatch(fetchFavorite({ query: '' }));
+      dispatch(fetchFavorite({ query: "" }));
     } catch (error) {
-      console.error('Lỗi khi thao tác với sách yêu thích:', error);
-      message.error('Có lỗi xảy ra khi thao tác với sách yêu thích');
+      console.error("Lỗi khi thao tác với sách yêu thích:", error);
+      message.error("Có lỗi xảy ra khi thao tác với sách yêu thích");
     }
   };
 
@@ -238,9 +258,9 @@ const BookCard = ({ book: initialBook }) => {
   const closeBookDetailModal = (updatedStars) => {
     setModalVisible(false);
     if (updatedStars) {
-      setBook(prevBook => ({
+      setBook((prevBook) => ({
         ...prevBook,
-        stars: updatedStars
+        stars: updatedStars,
       }));
       // Cập nhật ngay lập tức thay vì chờ WebSocket
       // console.log(`[BookCard ${componentId}] Cập nhật stars từ modal:`, updatedStars);
@@ -253,7 +273,7 @@ const BookCard = ({ book: initialBook }) => {
     try {
       // Kiểm tra nếu không có initialBook
       if (!initialBook) {
-        console.error('initialBook không tồn tại trong fetchBookDetail');
+        console.error("initialBook không tồn tại trong fetchBookDetail");
         return;
       }
 
@@ -265,21 +285,22 @@ const BookCard = ({ book: initialBook }) => {
         // console.log(`[BookCard ${componentId}] Nhận dữ liệu từ API:`, response.data);
 
         if (response.data) {
-          setBook(prevBook => ({
+          setBook((prevBook) => ({
             ...prevBook,
-            stars: response.data.stars
+            stars: response.data.stars,
           }));
           // console.log(`[BookCard ${componentId}] Cập nhật stars:`, response.data.stars);
         }
       } else {
-        console.error(`[BookCard ${componentId}] Không có ID sách (bookId):`, initialBook);
+        console.error(
+          `[BookCard ${componentId}] Không có ID sách (bookId):`,
+          initialBook
+        );
       }
     } catch (error) {
       console.error(`[BookCard ${componentId}] Lỗi lấy dữ liệu:`, error);
     }
   };
-
-
 
   return (
     <>
@@ -288,18 +309,18 @@ const BookCard = ({ book: initialBook }) => {
           className="mb-7 shadow-md"
           actions={[
             <Tooltip key="rating-tooltip" title="Đánh giá">
-              <Button type="text" icon={<MessageOutlined />} onClick={openBookDetailModal}>
+              <Button
+                type="text"
+                icon={<MessageOutlined />}
+                onClick={openBookDetailModal}
+              >
                 {book.stars?.ratingCount || 0}
               </Button>
             </Tooltip>,
           ]}
         >
           <div className="flex items-center mb-4">
-            <Avatar
-              src={book.user.image}
-              icon={<UserOutlined />}
-              size={40}
-            />
+            <Avatar src={book.user.image} icon={<UserOutlined />} size={40} />
             <div className="ml-3">
               <Link to={`/profile/${book.user.id}`} className="hover:underline">
                 <Text strong>{book.user.fullName}</Text>
@@ -323,11 +344,11 @@ const BookCard = ({ book: initialBook }) => {
             ellipsis={{
               rows: 3,
               expandable: true,
-              symbol: 'Xem thêm',
+              symbol: "Xem thêm",
             }}
             className="text-gray-700 mb-4"
           >
-            {book.description || 'Không có mô tả cho sách này.'}
+            {book.description || "Không có mô tả cho sách này."}
           </Paragraph>
 
           <div className="flex gap-4 mt-5">
@@ -336,7 +357,7 @@ const BookCard = ({ book: initialBook }) => {
                 alt={book.name}
                 src={book.bookImage || defaultImage}
                 className="object-cover rounded-lg"
-                style={{ height: '300px', width: '225px' }}
+                style={{ height: "300px", width: "225px" }}
               />
               <div className="book-actions flex gap-2 mt-2">
                 <Button
@@ -352,7 +373,9 @@ const BookCard = ({ book: initialBook }) => {
                   size="middle"
                   icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
                   onClick={toggleFavorite}
-                  className={isFavorite ? 'favorite-button active' : 'favorite-button'}
+                  className={
+                    isFavorite ? "favorite-button active" : "favorite-button"
+                  }
                 >
                   Yêu thích
                 </Button>
@@ -383,7 +406,9 @@ const BookCard = ({ book: initialBook }) => {
                   <Text className="mr-2">Thể loại:</Text>
                   {book.categories.map((category, index) => (
                     <Tag
-                      key={`${category.categoryId || category.id || 'cat'}-${index}-${book.bookId}`}
+                      key={`${
+                        category.categoryId || category.id || "cat"
+                      }-${index}-${book.bookId}`}
                       color="blue"
                       className="mb-1"
                     >
@@ -394,19 +419,22 @@ const BookCard = ({ book: initialBook }) => {
               )}
 
               {book.stars && (
-                <div className="flex items-center mt-2 cursor-pointer" onClick={openBookDetailModal}>
+                <div
+                  className="flex items-center mt-2 cursor-pointer"
+                  onClick={openBookDetailModal}
+                >
                   <Text className="mr-2">Đánh giá:</Text>
-                  <Rate allowHalf disabled value={book.stars.averageRating || 0} className="text-sm" />
-                  <Text className="ml-2">
-                    ({book.stars?.ratingCount || 0})
-                  </Text>
+                  <Rate
+                    allowHalf
+                    disabled
+                    value={book.stars.averageRating || 0}
+                    className="text-sm"
+                  />
+                  <Text className="ml-2">({book.stars?.ratingCount || 0})</Text>
                 </div>
               )}
-
             </Space>
           </div>
-
-
         </Card>
       </div>
 
@@ -420,4 +448,4 @@ const BookCard = ({ book: initialBook }) => {
   );
 };
 
-export default BookCard; 
+export default BookCard;

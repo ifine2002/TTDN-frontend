@@ -28,15 +28,21 @@ import {
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { isMobile } from "react-device-detect";
-import { callLogout } from "./../../api/services";
-import { setLogoutAction } from "./../../redux/slice/accountSlice";
+import { callLogout } from "api/services";
+import { setLogoutAction } from "redux/slice/accountSlice";
 import { useAppSelector, useAppDispatch } from "../../redux/hooks";
-import SockJS from "sockjs-client/dist/sockjs";
+import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import { ALL_PERMISSIONS } from "../../utils/permission";
-import Forbidden from "../../components/share/forbidden";
+import { ALL_PERMISSIONS } from "utils/permission";
+import Forbidden from "components/share/forbidden";
 
 const { Content, Sider } = Layout;
+
+interface IMenu {
+  label: React.ReactNode;
+  key: string;
+  icon: React.ReactNode;
+}
 
 const LayoutAdmin = () => {
   const location = useLocation();
@@ -44,7 +50,6 @@ const LayoutAdmin = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeMenu, setActiveMenu] = useState("");
   const [pendingBooks, setPendingBooks] = useState(0);
-  const [stompClient, setStompClient] = useState(null);
   const user = useAppSelector((state) => state.account.user);
   const isLoading = useAppSelector((state) => state.account.isLoading);
   const isAuthenticated = useAppSelector(
@@ -55,7 +60,7 @@ const LayoutAdmin = () => {
   const permissions = useAppSelector(
     (state) => state.account.user?.role?.permissions || []
   );
-  const [menuItems, setMenuItems] = useState([]);
+  const [menuItems, setMenuItems] = useState<IMenu[]>([]);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -69,7 +74,7 @@ const LayoutAdmin = () => {
     const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => {
+      debug: () => {
         // console.log(str);
       },
       reconnectDelay: 5000,
@@ -103,7 +108,6 @@ const LayoutAdmin = () => {
     };
 
     client.activate();
-    setStompClient(client);
 
     return () => {
       if (client) {
@@ -319,7 +323,7 @@ const LayoutAdmin = () => {
     const res = await callLogout();
     if (res && res.status === 200) {
       localStorage.removeItem("access_token");
-      dispatch(setLogoutAction({}));
+      dispatch(setLogoutAction());
       message.success("Đăng xuất thành công");
       navigate("/");
     }

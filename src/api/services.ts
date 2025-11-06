@@ -16,6 +16,7 @@ import {
   IRating,
   IComment,
   IDashboard,
+  IUserDetail,
 } from "@/types/backend";
 import axios from "./axios";
 
@@ -117,7 +118,10 @@ export const callCreateUser = (userData: IUser) => {
 
   if (userData.address) formData.append("address", userData.address);
   if (userData.status) formData.append("status", userData.status);
-  if (userData.roleId !== undefined) formData.append("roleId", userData.roleId);
+  if (userData.role?.id != null)
+    formData.append("role.id", String(userData.role.id));
+  if (userData.role?.name != null)
+    formData.append("role.name", userData.role.name);
 
   // Gửi request với content-type là multipart/form-data
   return axios.post<IBackendRes<IUser>>("/user/", formData, {
@@ -127,7 +131,7 @@ export const callCreateUser = (userData: IUser) => {
   });
 };
 
-export const callUpdateUser = (userData: IUser, userId: string) => {
+export const callUpdateUser = (userData: IUser, userId: number) => {
   // Tạo FormData object
   const formData = new FormData();
 
@@ -159,7 +163,10 @@ export const callUpdateUser = (userData: IUser, userId: string) => {
 
   if (userData.address) formData.append("address", userData.address);
   if (userData.status) formData.append("status", userData.status);
-  if (userData.roleId !== undefined) formData.append("roleId", userData.roleId);
+  if (userData.role?.id != null)
+    formData.append("role.id", String(userData.role.id));
+  if (userData.role?.name != null)
+    formData.append("role.name", userData.role.name);
 
   // Gửi request với content-type là multipart/form-data
   return axios.put<IBackendRes<IUser>>(`/user/${userId}`, formData, {
@@ -201,7 +208,7 @@ export const callUpdateUserProfile = (userData: IUser) => {
   });
 };
 
-export const callDeleteUser = (id: string) => {
+export const callDeleteUser = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/user/${id}`);
 };
 
@@ -209,11 +216,11 @@ export const callFetchUser = (query: string) => {
   return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/user/list?${query}`);
 };
 
-export const callFetchUserDetail = (id: string) => {
-  return axios.get<IBackendRes<IUser>>(`/user/${id}`);
+export const callFetchUserDetail = (id: number) => {
+  return axios.get<IBackendRes<IUserDetail>>(`/user/${id}`);
 };
 
-export const callFetchUserProfile = (id: string) => {
+export const callFetchUserProfile = (id: number) => {
   return axios.get<IBackendRes<IUser>>(`/user/profile/${id}`);
 };
 
@@ -431,7 +438,7 @@ export const callGetAllFavoriteOfUser = (query: string) => {
 
 //API fetch all book favorite of user
 export const callFetchAllBookFavoriteOfUser = (
-  userId: string,
+  userId: number,
   query: string
 ) => {
   return axios.get<IBackendRes<IModelPaginate<IBookSearch>>>(
@@ -451,13 +458,14 @@ export const callCreateRole = (role: IRole) => {
   });
 };
 
-export const callUpdateRole = (role: IRole, id: string) => {
+export const callUpdateRole = (role: IRole, id: number) => {
   return axios.put<IBackendRes<IRole>>(`/role/${id}`, {
+    active: role.isActive,
     ...role,
   });
 };
 
-export const callDeleteRole = (id: string) => {
+export const callDeleteRole = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/role/${id}`);
 };
 
@@ -465,7 +473,7 @@ export const callFetchRole = (query: string) => {
   return axios.get<IBackendRes<IModelPaginate<IRole>>>(`/role/list?${query}`);
 };
 
-export const callFetchRoleById = (id: string) => {
+export const callFetchRoleById = (id: number) => {
   return axios.get<IBackendRes<IRole>>(`/role/${id}`);
 };
 
@@ -612,13 +620,13 @@ export const callCreateRating = (rating: IRating) => {
   });
 };
 
-export const callUpdateRating = (rating: IRating, id: string) => {
+export const callUpdateRating = (rating: IRating, id: number) => {
   return axios.put<IBackendRes<IRating>>(
     `/review/rating/${id}?stars=${rating.stars}`
   );
 };
 
-export const callDeleteRating = (id: string) => {
+export const callDeleteRating = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/review/rating/${id}`);
 };
 

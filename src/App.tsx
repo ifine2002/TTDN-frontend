@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import DashboardPage from "pages/admin/dashboard";
-import NotFound from "./components/share/notfound";
+import NotFound from "./components/share/not.found";
 import LayoutAdmin from "components/admin/AdminLayout";
 import LoginPage from "pages/auth/login";
 import RegisterPage from "pages/auth/register";
@@ -21,14 +21,14 @@ import LayoutClient from "@/components/client/layout.client";
 import BookDetailPage from "@/pages/client/book.detail";
 import UploadBookPage from "@/pages/client/upload.book";
 import SearchPage from "@/pages/client/search.book";
-import ProfilePage from "pages/client/ProfilePage";
-import MyProfile from "pages/client/MyProfile";
+import ProfilePage from "@/pages/client/profile";
 import VerifyEmailPage from "pages/auth/verify-email";
-import ExplorePage from "pages/client/ExplorePage";
+import ExplorePage from "@/pages/client/explore";
 import ForgotPasswordPage from "pages/auth/forgot-password";
 import ResetPasswordPage from "pages/auth/reset-password";
 import LayoutApp from "components/share/layout.app";
 import HomePage from "pages/client/homepage";
+import MyProfilePage from "@/pages/client/my-profile";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -72,7 +72,7 @@ export default function App() {
         },
         {
           path: "/my-profile",
-          element: <MyProfile />,
+          element: <MyProfilePage />,
         },
         {
           path: "/explore",

@@ -48,12 +48,14 @@ const BookDetail = () => {
       try {
         if (showLoading) setLoading(true);
         const response = await callGetBookDetailById(id!);
-        setBook(response.data);
-        setListReview(response.data.reviews);
-        setStart(response.data.stars);
-        if (showLoading) setLoading(false);
+        if (response?.data) {
+          setBook(response.data);
+          if (response.data.reviews) setListReview(response.data.reviews);
+          if (response.data.stars) setStart(response.data.stars);
+        }
       } catch (error) {
         console.error("Error fetching book details:", error);
+      } finally {
         if (showLoading) setLoading(false);
       }
     },
@@ -192,7 +194,7 @@ const BookDetail = () => {
   if (!book) {
     return <div>Không tìm thấy sách</div>;
   }
-  const isFavorite = favoriteBooks.includes(book?.id);
+  const isFavorite = favoriteBooks.includes(book.id!);
 
   const toggleFavorite = async () => {
     try {
@@ -203,11 +205,11 @@ const BookDetail = () => {
 
       if (isFavorite) {
         // Nếu đã yêu thích thì gọi API hủy yêu thích
-        await dispatch(unlikeBook(book.id));
+        await dispatch(unlikeBook(book.id!));
         message.success("Đã bỏ yêu thích sách");
       } else {
         // Nếu chưa yêu thích thì gọi API yêu thích
-        await dispatch(likeBook(book.id));
+        await dispatch(likeBook(book.id!));
         message.success("Đã thêm vào danh sách yêu thích");
       }
 
@@ -222,7 +224,11 @@ const BookDetail = () => {
   return (
     <div className="book-detail-container">
       <div className="book-image-container">
-        <img src={book.image} alt={book.name} className="book-image" />
+        <img
+          src={book.image?.toString()}
+          alt={book.name}
+          className="book-image"
+        />
         <div className="book-actions">
           <Button
             type="primary"

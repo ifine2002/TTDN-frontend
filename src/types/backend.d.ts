@@ -17,7 +17,7 @@ export interface IModelPaginate<T> {
 export interface IAccount {
   access_token: string;
   user: {
-    id: string;
+    id: number;
     email: string;
     fullName: string;
     image: string;
@@ -39,29 +39,40 @@ export interface IAccount {
 export interface IGetAccount extends Omit<IAccount, "access_token"> {}
 
 export interface IUser {
-  id?: string;
+  id?: number;
   fullName: string;
   email?: string;
   password?: string;
-  image?: string;
+  image?: string | File;
   phone?: string;
   gender?: string;
   userDOB?: string | Date;
   address?: string;
   status?: string;
-  roleId?: string;
   role?: {
-    id: string;
+    id: number;
     name: string;
   };
   deleteImage?: boolean;
-  follower?: number;
-  following?: number;
+  follower?: IUserFollow[];
+  following?: IUserFollow[];
 
   createdBy?: string;
   updatedBy?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface IUserDetail
+  extends Omit<IUser, "follower" | "following" | "deleteImage"> {
+  follower: number;
+  following: number;
+}
+
+export interface IUserFollow {
+  id: number;
+  fullName: string;
+  image: string;
 }
 
 export interface IBook {
@@ -201,10 +212,10 @@ interface IFavorite {
 }
 
 export interface IRole {
-  id?: string;
+  id?: number;
   name: string;
   description: string;
-  active?: boolean;
+  isActive?: boolean;
   permissions: IPermission[] | string[];
 
   createdBy?: string;
@@ -214,7 +225,7 @@ export interface IRole {
 }
 
 export interface ICategory {
-  id?: string;
+  id?: number;
   name: string;
   description?: string;
   image?: string;
@@ -229,18 +240,18 @@ export interface ICategory {
 
 export interface IFollow {
   id?: string;
-  followerId: string;
-  followingId: string;
+  followerId?: number;
+  followingId?: number;
 
   createdBy?: string;
   createdAt?: string;
 }
 
 export interface IRating {
-  id?: string;
+  id?: number;
   stars: number;
-  userId: string;
-  bookId: string;
+  userId?: string;
+  bookId?: string;
 
   createdBy?: string;
   updatedBy?: string;
@@ -266,3 +277,5 @@ export interface IDashboard {
   totalBook: number;
   totalReview: number;
 }
+
+type SortOrder = "ascend" | "descend";

@@ -13,9 +13,9 @@ import ModalFollow from "../../components/admin/follow/modal.follow";
 const FollowPage = () => {
   const tableRef = useRef();
   const [openModal, setOpenModal] = useState(false);
-  const isFetching = useAppSelector((state) => state.follow.isFetching);
-  const data = useAppSelector((state) => state.follow.data);
-  const follows = useAppSelector((state) => state.follow.result);
+  const isFetching = useAppSelector((state) => state.follow.follows.isFetching);
+  const data = useAppSelector((state) => state.follow.follows.data);
+  const follows = useAppSelector((state) => state.follow.follows.result);
 
   const dispatch = useAppDispatch();
 

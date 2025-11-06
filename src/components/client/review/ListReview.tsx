@@ -45,14 +45,9 @@ const ListReview = (props: IProps) => {
               { value: 2, count: stars?.totalTwoStar },
               { value: 1, count: stars?.totalOneStar },
             ].map((star) => {
-              if (!stars?.ratingCount || !star.count) {
-                return 0;
-              }
-
-              // Tính phần trăm cho mỗi mức sao
               const percentage =
-                stars.ratingCount > 0
-                  ? Math.round((star.count / stars.ratingCount) * 100)
+                stars!.ratingCount > 0
+                  ? Math.round((star.count! / stars!.ratingCount) * 100)
                   : 0;
 
               return (

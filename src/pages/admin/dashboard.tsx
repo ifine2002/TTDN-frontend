@@ -1,12 +1,13 @@
 import { Card, Col, Row, Statistic } from "antd";
 import { useEffect, useState } from "react";
 import CountUp from "react-countup";
-import { callGetDashboard } from "../../api/services";
+import { callGetDashboard } from "api/services";
+import { IDashboard } from "@/types/backend";
 
 const DashboardPage = () => {
-  const [data, setData] = useState({});
+  const [data, setData] = useState<IDashboard>();
 
-  const formatter = (value) => {
+  const formatter = (value: number | string) => {
     return <CountUp end={Number(value)} separator="," />;
   };
 
@@ -27,7 +28,7 @@ const DashboardPage = () => {
         <Card title="Total Users" bordered={false}>
           <Statistic
             // title="Total Users"
-            value={data.totalUser}
+            value={data?.totalUser}
             formatter={formatter}
           />
         </Card>
@@ -36,7 +37,7 @@ const DashboardPage = () => {
         <Card title="Total Books" bordered={false}>
           <Statistic
             // title="Total Books"
-            value={data.totalBook}
+            value={data?.totalBook}
             formatter={formatter}
           />
         </Card>
@@ -45,7 +46,7 @@ const DashboardPage = () => {
         <Card title="Total Reviews" bordered={false}>
           <Statistic
             // title="Total Reviews"
-            value={data.totalReview}
+            value={data?.totalReview}
             formatter={formatter}
           />
         </Card>

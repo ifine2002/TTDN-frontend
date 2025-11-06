@@ -1,31 +1,68 @@
-import DataTable from "./../../components/client/data-table/index";
-import { useAppDispatch, useAppSelector } from "./../../redux/hooks";
-import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Popconfirm, Space, message, notification } from "antd";
-import { useRef, useState } from "react";
+import DataTable from "components/client/data-table/index";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Popconfirm, Space, Tag, message, notification } from "antd";
+import { useState, useRef, useEffect } from "react";
 import dayjs from "dayjs";
-import { callDeleteRating } from "./../../api/services";
+import { callDeleteRole, callFetchPermission } from "api/services";
 import queryString from "query-string";
+import { fetchRole } from "redux/slice/roleSlice";
+import ModalRole from "components/admin/role/modal.role";
 import { sfLike } from "spring-filter-query-builder";
-import { fetchRating } from "../../redux/slice/ratingSlice";
-import ModalRating from "../../components/admin/rating/modal.rating";
+import { groupByPermission } from "components/share/utils";
+import { IPermission, IRole, SortOrder } from "types/backend";
 
-const RatingPage = () => {
-  const [dataInit, setDataInit] = useState(null);
-  const tableRef = useRef();
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
 
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<"name" | "id" | "createdAt" | "updatedAt", SortOrder>
+>;
+
+const RolePage = () => {
   const [openModal, setOpenModal] = useState(false);
-  const isFetching = useAppSelector((state) => state.rating.isFetching);
-  const data = useAppSelector((state) => state.rating.data);
-  const ratings = useAppSelector((state) => state.rating.result);
+  const isFetching = useAppSelector((state) => state.role.isFetching);
+  const data = useAppSelector((state) => state.role.data);
+  const actionRef = useRef<ActionType>();
 
   const dispatch = useAppDispatch();
 
-  const handleDeleteRating = async (id) => {
+  //all backend permissions
+  const [listPermissions, setListPermissions] = useState<
+    | {
+        module: string;
+        permissions: IPermission[];
+      }[]
+    | null
+  >(null);
+
+  //current role
+  const [singleRole, setSingleRole] = useState<IRole | null>(null);
+
+  useEffect(() => {
+    const init = async () => {
+      const res = await callFetchPermission(`page=0&size=100`);
+      if (res.data?.result) {
+        setListPermissions(groupByPermission(res.data?.result));
+      }
+    };
+    init();
+  }, []);
+
+  const handleDeleteRole = async (id: number) => {
     if (id) {
-      const res = await callDeleteRating(id);
+      const res = await callDeleteRole(id);
       if (res && res.status === 200) {
-        message.success("Xóa Follow thành công");
+        message.success("Xóa Role thành công");
         reloadTable();
       } else {
         notification.error({
@@ -37,37 +74,38 @@ const RatingPage = () => {
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<IRole>[] = [
     {
       title: "Id",
       dataIndex: "id",
       width: 50,
-      sorter: true,
       render: (text, record, index, action) => {
         return <span>{record.id}</span>;
       },
-    },
-    {
-      title: "Stars",
-      dataIndex: "stars",
+      hideInSearch: true,
       sorter: true,
     },
     {
-      title: "User Id",
-      dataIndex: "userId",
+      title: "Name",
+      dataIndex: "name",
       sorter: true,
     },
     {
-      title: "Book Id",
-      dataIndex: "bookId",
-      sorter: true,
-      // fieldProps: {
-      //     placeholder: 'Tìm kiếm theo Following Id',
-      //     style: { marginLeft: 5 }
-      // },
+      title: "Status",
+      dataIndex: "isActive",
+      render(dom, entity, index, action, schema) {
+        return (
+          <>
+            <Tag color={entity.isActive ? "lime" : "red"}>
+              {entity.isActive ? "ACTIVE" : "INACTIVE"}
+            </Tag>
+          </>
+        );
+      },
+      hideInSearch: true,
     },
     {
       title: "CreatedAt",
@@ -114,15 +152,15 @@ const RatingPage = () => {
             }}
             type=""
             onClick={() => {
+              setSingleRole(entity);
               setOpenModal(true);
-              setDataInit(entity);
             }}
           />
           <Popconfirm
             placement="leftTop"
-            title={"Xác nhận xóa rating"}
-            description={"Bạn có chắc chắn muốn xóa rating này ?"}
-            onConfirm={() => handleDeleteRating(entity.id)}
+            title={"Xác nhận xóa role"}
+            description={"Bạn có chắc chắn muốn xóa role này ?"}
+            onConfirm={() => handleDeleteRole(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
           >
@@ -140,32 +178,25 @@ const RatingPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
-
-    if (params.id) filterArray.push(`${sfLike("id", params.id)}`);
-    if (params.stars) filterArray.push(`${sfLike("stars", params.stars)}`);
-    if (params.userId) filterArray.push(`${sfLike("user.id", params.userId)}`);
-    if (params.bookId) filterArray.push(`${sfLike("book.id", params.bookId)}`);
-    query.filter = filterArray.join(" and ");
+    if (params.name) query.filter = `${sfLike("name", params.name)}`;
 
     if (!query.filter) delete query.filter;
+
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = [
-      "id",
-      "stars",
-      "userId",
-      "bookId",
+    const fields: Array<keyof Sorter> = [
+      "name",
       "createdAt",
       "updatedAt",
+      "id",
     ];
 
     if (sort) {
@@ -189,15 +220,19 @@ const RatingPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
-        headerTitle="Danh sách Rating"
+        actionRef={actionRef}
+        headerTitle="Danh sách Roles (Vai Trò)"
         rowKey="id"
         loading={isFetching}
         columns={columns}
-        dataSource={ratings}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchRating({ query }));
+        request={async (params, sort) => {
+          const query = buildQuery(params as QueryParams, sort as Sorter);
+          const res = await dispatch(fetchRole({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -215,27 +250,26 @@ const RatingPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
+        toolBarRender={(_action, _rows) => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
-      <ModalRating
+      <ModalRole
         openModal={openModal}
         setOpenModal={setOpenModal}
         reloadTable={reloadTable}
-        dataInit={dataInit}
-        setDataInit={setDataInit}
+        listPermissions={listPermissions}
+        singleRole={singleRole}
+        setSingleRole={setSingleRole}
       />
     </div>
   );
 };
 
-export default RatingPage;
+export default RolePage;

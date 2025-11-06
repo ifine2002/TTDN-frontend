@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import axios from "axios";
 declare module "*.mp4" {
   export default string;
 }
@@ -24,6 +26,13 @@ declare module "uuid";
 
 declare module "lodash";
 
+// https://github.com/axios/axios/issues/1510#issuecomment-448201698
+
+declare module "axios" {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
+  export interface AxiosResponse<T = any> extends Promise<T> {}
+}
+
 declare module "*.module.css" {
   const classes: { [key: string]: string };
   export default classes;
@@ -47,9 +56,4 @@ declare module "*.module.less" {
 declare module "*.module.styl" {
   const classes: { [key: string]: string };
   export default classes;
-}
-
-declare module "axios" {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-  export interface AxiosResponse<T = any> extends Promise<T> {}
 }
