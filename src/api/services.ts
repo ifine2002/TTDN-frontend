@@ -343,7 +343,7 @@ export const callGetBookById = (id: string) => {
   return axios.get<IBackendRes<IBook>>(`/book/${id}`);
 };
 
-export const callGetBookDetailById = (id: string) => {
+export const callGetBookDetailById = (id: number) => {
   return axios.get<IBackendRes<IBook>>(`/book/detail-book/${id}`);
 };
 

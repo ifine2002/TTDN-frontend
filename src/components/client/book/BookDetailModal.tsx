@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Modal, Typography, Rate, Divider, Row, Col, Avatar, Spin } from "antd";
-import { callGetBookDetailById } from "../../../api/services";
-import ActionReview from "../review/ActionReview";
-import ListReview from "../review/ListReview";
+import { useState, useEffect, useCallback } from "react";
+import { Modal, Typography, Rate, Divider, Row, Col, Spin } from "antd";
+import { callGetBookDetailById } from "api/services";
+import ActionReview from "components/client/review/ActionReview";
+import ListReview from "components/client/review/ListReview";
 import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
+import SockJS from "sockjs-client";
 import "styles/book.detail.modal.scss";
+import { IBook, IReviews, IStars } from "@/types/backend";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,18 +19,24 @@ const getScrollbarWidth = () => {
   const inner = document.createElement("div");
   outer.appendChild(inner);
   const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-  outer.parentNode.removeChild(outer);
+  outer.parentNode?.removeChild(outer);
   return scrollbarWidth;
 };
+interface IProps {
+  visible: boolean;
+  bookId: number;
+  onCancel: (v?: IStars) => void;
+  userId: number;
+}
 
-const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
-  const [book, setBook] = useState(null);
+const BookDetailModal = ({ visible, bookId, onCancel, userId }: IProps) => {
+  const [book, setBook] = useState<IBook | null>(null);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [listReview, setListReview] = useState([]);
-  const [userReview, setUserReview] = useState(null);
-  const [stars, setStars] = useState(null);
+  const [comment, setComment] = useState<string>("");
+  const [listReview, setListReview] = useState<IReviews[]>([]);
+  const [userReview, setUserReview] = useState<IReviews | null>(null);
+  const [stars, setStars] = useState<IStars | null>(null);
   const [isDataUpdated, setIsDataUpdated] = useState(false);
 
   const fetchBookDetail = useCallback(
@@ -39,10 +46,10 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
       try {
         if (showLoading) setLoading(true);
         const response = await callGetBookDetailById(bookId);
-        setBook(response.data);
-        setListReview(response.data.reviews);
+        setBook(response.data!);
+        setListReview(response.data!.reviews!);
         if (showLoading) setLoading(false);
-        setStars(response.data.stars);
+        setStars(response.data!.stars!);
         setIsDataUpdated(true);
       } catch (error) {
         console.error("Error fetching book details:", error);
@@ -59,9 +66,9 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
   }, [visible, bookId, fetchBookDetail]);
 
   useEffect(() => {
-    if (user?.id && listReview?.length > 0) {
+    if (userId && listReview?.length > 0) {
       const existingReview = listReview.find(
-        (review) => review.userId === user.id
+        (review) => review.userId === userId
       );
       if (existingReview) {
         setUserReview(existingReview);
@@ -73,7 +80,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
         setComment("");
       }
     }
-  }, [user, listReview]);
+  }, [userId, listReview]);
 
   useEffect(() => {
     if (!visible || !bookId) return;
@@ -132,9 +139,9 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
         );
       }
     };
-  }, [visible, bookId, user?.id]);
+  }, [visible, bookId, userId]);
 
-  const handleReviewCreateOrUpdate = (reviewData) => {
+  const handleReviewCreateOrUpdate = (reviewData: IReviews) => {
     console.log("BookDetailModal: Xử lý cập nhật review:", reviewData);
 
     setListReview((prevReviews) => {
@@ -153,35 +160,54 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
         return updatedReviews;
       } else {
         // Cập nhật stars object khi tạo mới review
-        setStars((prevStars) => ({
-          ...prevStars,
-          ratingCount: prevStars.ratingCount + 1,
-        }));
+        setStars((prevStars) => {
+          // prevStars may be null on first update, so provide a safe default
+          if (!prevStars) {
+            return {
+              averageRating: reviewData.stars || 0,
+              ratingCount: 1,
+              totalOneStar: 0,
+              totalTwoStar: 0,
+              totalThreeStar: 0,
+              totalFourStar: 0,
+              totalFiveStar: 0,
+            };
+          }
+          return {
+            ...prevStars,
+            ratingCount: prevStars.ratingCount + 1,
+          };
+        });
         return [reviewData, ...prevReviews];
       }
     });
 
-    if (reviewData.userId === user?.id) {
+    if (reviewData.userId === userId) {
       setUserReview(reviewData);
       setRating(reviewData.stars || 0);
       setComment(reviewData.comment || "");
     }
   };
 
-  const handleReviewDelete = (userId) => {
-    console.log("BookDetailModal: Xử lý xóa review của user:", userId);
+  const handleReviewDelete = (id: number) => {
+    console.log("BookDetailModal: Xử lý xóa review của user:", id);
 
     setListReview((prevReviews) =>
-      prevReviews.filter((review) => review.userId !== userId)
+      prevReviews.filter((review) => review.userId !== id)
     );
 
     // Cập nhật stars object
-    setStars((prevStars) => ({
-      ...prevStars,
-      ratingCount: Math.max(0, prevStars.ratingCount - 1),
-    }));
+    setStars((prevStars) => {
+      if (!prevStars) {
+        return prevStars;
+      }
+      return {
+        ...prevStars,
+        ratingCount: Math.max(0, prevStars.ratingCount - 1),
+      };
+    });
 
-    if (user?.id === userId) {
+    if (userId === id) {
       setUserReview(null);
       setRating(0);
       setComment("");
@@ -207,7 +233,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
       }px`;
 
       // Thêm padding cho header
-      const header = document.querySelector(".header-section");
+      const header = document.querySelector<HTMLElement>(".header-section");
       let originalHeaderPaddingRight = "0px";
 
       if (header) {
@@ -236,7 +262,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
   const handleClose = () => {
     // Nếu dữ liệu đã được cập nhật, gọi onCancel để cập nhật phía BookCard
     if (isDataUpdated) {
-      onCancel(stars);
+      onCancel(stars!);
     } else {
       onCancel();
     }
@@ -281,7 +307,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
           <div className="book-header">
             <div className="book-image-container">
               <img
-                src={book.image}
+                src={book.image?.toString()}
                 alt={book.name}
                 className="book-modal-image"
               />
@@ -325,7 +351,7 @@ const BookDetailModal = ({ visible, bookId, onCancel, user }) => {
               </Col>
               <Col span={8}>
                 <Text strong>Ngày xuất bản</Text>
-                <div>{book.publishedDate}</div>
+                <div>{book.publishedDate?.toString()}</div>
               </Col>
             </Row>
             <Row gutter={[16, 16]} style={{ marginTop: "8px" }}>

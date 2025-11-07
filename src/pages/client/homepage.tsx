@@ -172,19 +172,15 @@ const HomePage = () => {
 
   // Xử lý khi người dùng cuộn xuống để tải thêm sách
   const handleLoadMore = () => {
-    if (isLoading.current) {
-      return;
-    }
+    if (isLoading.current) return;
 
     const nextPage = pagination.page + 1;
-
     if (nextPage <= pagination.totalPages) {
       // Lưu lại vị trí scroll hiện tại
       const scrollPosition =
         window.pageYOffset || document.documentElement.scrollTop;
 
       fetchBooks(nextPage).then(() => {
-        // Khôi phục lại vị trí scroll sau khi hoàn thành
         setTimeout(() => {
           window.scrollTo({
             top: scrollPosition,

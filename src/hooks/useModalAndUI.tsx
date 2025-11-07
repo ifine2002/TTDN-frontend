@@ -5,7 +5,7 @@ export const useModalAndUI = () => {
   const [followerVisible, setFollowerVisible] = useState(false);
   const [activeModalTab, setActiveModalTab] = useState("followers");
   const [activeTab, setActiveTab] = useState("post");
-  const headerRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   // Handle modal scroll locking
   useEffect(() => {

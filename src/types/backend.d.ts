@@ -22,10 +22,10 @@ export interface IAccount {
     fullName: string;
     image: string;
     role: {
-      id: string;
+      id: number;
       name: string;
       permissions: {
-        id: string;
+        id: number;
         name: string;
         apiPath: string;
         method: string;
@@ -125,7 +125,7 @@ export interface IBookAdmin {
 }
 
 export interface IBookSearch {
-  id: string;
+  id: number;
   name: string;
   image: string;
   publishedDate: string;
@@ -135,8 +135,9 @@ export interface IBookSearch {
 }
 
 export interface IPost {
-  bookId: string;
+  bookId: number;
   name: string;
+  description: string;
   bookImage: string;
   publishedDate: string;
   author: string;

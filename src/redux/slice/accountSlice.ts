@@ -21,10 +21,10 @@ interface IState {
     fullName: string;
     image: string;
     role: {
-      id?: string;
+      id?: number;
       name?: string;
       permissions?: {
-        id: string;
+        id: number;
         name: string;
         apiPath: string;
         method: string;
@@ -48,7 +48,7 @@ const initialState: IState = {
     fullName: "",
     image: "",
     role: {
-      id: "",
+      id: 0,
       name: "",
       permissions: [],
     },
@@ -86,7 +86,7 @@ export const accountSlide = createSlice({
         fullName: "",
         image: "",
         role: {
-          id: "",
+          id: 0,
           name: "",
           permissions: [],
         },

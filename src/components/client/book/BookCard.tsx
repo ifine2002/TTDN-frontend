@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Card,
   Rate,
@@ -22,29 +22,33 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import BookDetailModal from "./BookDetailModal";
-import { useAppSelector, useAppDispatch } from "../../../redux/hooks";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
-import { callGetBookDetailById } from "../../../api/services";
-import {
-  likeBook,
-  unlikeBook,
-  fetchFavorite,
-} from "../../../redux/slice/favoriteSlice";
+import { useAppSelector, useAppDispatch } from "redux/hooks";
+import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import { callGetBookDetailById } from "api/services";
+import { likeBook, unlikeBook, fetchFavorite } from "redux/slice/favoriteSlice";
+import { IPost, IStars } from "@/types/backend";
 
-// Tạo một WebSocket client toàn cục duy nhất
-let globalStompClient = null;
-let activeSubscriptions = {};
+// ====== WebSocket globals (single connection across app) ======
+let globalStompClient: Client | null = null;
+const activeSubscriptions: Record<
+  string,
+  { subscription: StompSubscription; count: number }
+> = {};
 let connectionCount = 0;
 
-// Hàm khởi tạo kết nối WebSocket toàn cục
+// A set of listeners to be run whenever the client connects/reconnects
+const onConnectListeners = new Set<(frame: any) => void>();
+
 const initializeGlobalWebSocket = () => {
   if (globalStompClient) {
     return globalStompClient;
   }
 
-  // console.log('Khởi tạo kết nối WebSocket toàn cục');
-  const socket = new SockJS("http://localhost:8080/ws");
+  const WS_URL =
+    (import.meta as any)?.env?.VITE_WS_URL ?? "http://localhost:8080/ws";
+  const socket = new SockJS(WS_URL);
+
   const client = new Client({
     webSocketFactory: () => socket,
     reconnectDelay: 5000,
@@ -52,16 +56,25 @@ const initializeGlobalWebSocket = () => {
     heartbeatOutgoing: 4000,
   });
 
-  client.onConnect = () => {
-    // console.log('WebSocket kết nối toàn cục thành công');
+  client.onConnect = (frame) => {
+    // fan out to all listeners safely
+    onConnectListeners.forEach((fn) => {
+      try {
+        fn(frame);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("onConnect listener error:", e);
+      }
+    });
   };
 
   client.onStompError = (frame) => {
-    console.error(`WebSocket error toàn cục: ${frame.headers["message"]}`);
+    // eslint-disable-next-line no-console
+    console.error(`WebSocket STOMP error: ${frame.headers["message"]}`);
   };
 
   client.onWebSocketClose = () => {
-    // console.log('WebSocket đóng kết nối toàn cục');
+    // If no active components are using it, allow re-init later
     if (connectionCount === 0) {
       globalStompClient = null;
     }
@@ -72,102 +85,104 @@ const initializeGlobalWebSocket = () => {
   return client;
 };
 
-// Hàm đăng ký theo dõi một chủ đề
-const subscribeToTopic = (topic, callback) => {
+const subscribeToTopic = (
+  topic: string,
+  callback: (message: IMessage) => void
+) => {
   if (!globalStompClient || !globalStompClient.connected) {
-    console.error("Không thể đăng ký: WebSocket chưa kết nối");
+    // Not connected yet; caller should add an onConnect listener to (re)attach
     return null;
   }
 
   if (!activeSubscriptions[topic]) {
-    // console.log(`Đăng ký lắng nghe chủ đề: ${topic}`);
     const subscription = globalStompClient.subscribe(topic, callback);
-    activeSubscriptions[topic] = {
-      subscription,
-      count: 1,
-    };
+    activeSubscriptions[topic] = { subscription, count: 1 };
     return subscription;
-  } else {
-    // console.log(`Tăng số lượng đăng ký cho chủ đề: ${topic}`);
-    activeSubscriptions[topic].count += 1;
-    return activeSubscriptions[topic].subscription;
   }
+
+  activeSubscriptions[topic].count += 1;
+  return activeSubscriptions[topic].subscription;
 };
 
-// Hàm hủy đăng ký theo dõi một chủ đề
-const unsubscribeFromTopic = (topic) => {
-  if (activeSubscriptions[topic]) {
-    activeSubscriptions[topic].count -= 1;
-    // console.log(`Giảm số lượng đăng ký cho chủ đề: ${topic}, còn lại: ${activeSubscriptions[topic].count}`);
+const unsubscribeFromTopic = (topic: string) => {
+  const entry = activeSubscriptions[topic];
+  if (!entry) return;
 
-    if (activeSubscriptions[topic].count === 0) {
-      // console.log(`Hủy đăng ký chủ đề: ${topic}`);
-      activeSubscriptions[topic].subscription.unsubscribe();
-      delete activeSubscriptions[topic];
+  entry.count -= 1;
+
+  if (entry.count <= 0) {
+    try {
+      entry.subscription.unsubscribe();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("Unsubscribe error:", e);
     }
+    delete activeSubscriptions[topic];
   }
 };
 
-const { Meta } = Card;
 const { Text, Title, Paragraph } = Typography;
 
-const BookCard = ({ book: initialBook }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [book, setBook] = useState(initialBook);
-  const defaultImage = "https://placehold.co/300x400?text=No+Image";
-  const user = useAppSelector((state) => state.account.user);
+interface IProps {
+  book: IPost;
+}
 
-  const dispatch = useAppDispatch();
+const BookCard = ({ book: initialBook }: IProps) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [book, setBook] = useState<IPost>(initialBook);
+  const defaultImage = "https://placehold.co/300x400?text=No+Image";
+
+  const user = useAppSelector((state) => state.account.user);
   const favoriteBooks = useAppSelector((state) => state.favorite.favoriteBooks);
-  const isFavorite = favoriteBooks.includes(book.bookId);
+  const dispatch = useAppDispatch();
+
+  const isFavorite = useMemo(
+    () => favoriteBooks?.includes(book.bookId),
+    [favoriteBooks, book.bookId]
+  );
+
   const componentId = React.useRef(
     Math.random().toString(36).substring(2, 8)
   ).current;
-  const [subscription, setSubscription] = useState(null);
+
+  // Track current topic to clean up correctly
+  const currentTopicRef = useRef<string | null>(null);
+  const onConnectCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!initialBook) {
       console.error("initialBook không tồn tại");
       return;
     }
-    // console.log(`[BookCard ${componentId}] Khởi tạo với:`, initialBook);
+    // console.debug(`[BookCard ${componentId}] init with`, initialBook);
   }, [initialBook, componentId]);
 
   useEffect(() => {
-    if (!initialBook || !initialBook.bookId) {
+    if (!initialBook?.bookId) {
       console.error("initialBook.bookId không tồn tại");
       return;
     }
 
-    // Flag để kiểm tra nếu component vẫn mounted
-    let isComponentMounted = true;
-    const bookId = initialBook.bookId.toString();
+    let isMounted = true;
+    const bookId = String(initialBook.bookId);
     const topic = `/topic/reviews/${bookId}`;
 
-    // console.log(`[BookCard ${componentId}] Thiết lập theo dõi cho book ${bookId}`);
+    connectionCount += 1;
 
-    // Tăng số lượng kết nối
-    connectionCount++;
-
-    // Đảm bảo kết nối WebSocket toàn cục đã được khởi tạo
     const client = initializeGlobalWebSocket();
 
-    // Hàm xử lý tin nhắn
-    const handleMessage = async (message) => {
-      if (!isComponentMounted) return;
+    const handleMessage = async (message: IMessage) => {
+      if (!isMounted) return;
 
       if (message.body) {
         try {
           const notification = JSON.parse(message.body);
-          const { action, data } = notification;
-          // console.log(`[BookCard ${componentId}] Nhận thông báo WebSocket: ${action}`, data);
-
+          const { action } = notification;
           if (
             action === "create" ||
             action === "update" ||
             action === "delete"
           ) {
-            // console.log(`[BookCard ${componentId}] Cập nhật dữ liệu sau thông báo ${action}`);
             await fetchBookDetail();
           }
         } catch (err) {
@@ -176,43 +191,49 @@ const BookCard = ({ book: initialBook }) => {
       }
     };
 
-    // Đăng ký theo dõi chủ đề khi client đã kết nối
-    const setupSubscription = () => {
-      if (client.connected) {
-        const sub = subscribeToTopic(topic, handleMessage);
-        setSubscription(sub);
-      } else {
-        client.onConnect = () => {
-          // console.log(`[BookCard ${componentId}] WebSocket kết nối thành công, đăng ký chủ đề`);
-          const sub = subscribeToTopic(topic, handleMessage);
-          setSubscription(sub);
-        };
+    const attach = () => {
+      const sub = subscribeToTopic(topic, handleMessage);
+      if (sub) {
+        currentTopicRef.current = topic; // IMPORTANT for proper cleanup
       }
     };
 
-    setupSubscription();
+    if (client.connected) {
+      attach();
+    } else {
+      const listener = () => attach();
+      onConnectListeners.add(listener);
+      onConnectCleanupRef.current = () => onConnectListeners.delete(listener);
+    }
 
-    // Cập nhật dữ liệu ban đầu để đảm bảo dữ liệu đồng bộ
+    // Initial sync
     fetchBookDetail();
 
-    // Cleanup
     return () => {
-      // console.log(`[BookCard ${componentId}] Cleanup - Component unmount cho book ${bookId}`);
-      isComponentMounted = false;
+      isMounted = false;
 
-      // Hủy đăng ký chủ đề
-      unsubscribeFromTopic(topic);
+      // Remove pending onConnect listener if any
+      if (onConnectCleanupRef.current) {
+        try {
+          onConnectCleanupRef.current();
+        } finally {
+          onConnectCleanupRef.current = null;
+        }
+      }
 
-      // Giảm số lượng kết nối
-      connectionCount--;
+      // Unsubscribe topic if subscribed
+      if (currentTopicRef.current) {
+        unsubscribeFromTopic(currentTopicRef.current);
+        currentTopicRef.current = null;
+      }
 
-      // Nếu không còn kết nối nào, đóng WebSocket
+      connectionCount = Math.max(0, connectionCount - 1);
       if (connectionCount === 0 && globalStompClient) {
-        // console.log('Đóng kết nối WebSocket toàn cục vì không còn component nào sử dụng');
         globalStompClient.deactivate();
       }
     };
-  }, [initialBook?.bookId, componentId, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialBook?.bookId, componentId]);
 
   useEffect(() => {
     if (user && user.id !== 0) {
@@ -220,30 +241,28 @@ const BookCard = ({ book: initialBook }) => {
     }
   }, [user, dispatch]);
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    return dayjs(date).format("DD/MM/YYYY HH:mm");
+    const d = dayjs(dateString);
+    return d.isValid() ? d.format("DD/MM/YYYY HH:mm") : "";
   };
 
   const toggleFavorite = async () => {
     try {
-      if (!user || user.id == "") {
+      if (!user || user.id == 0) {
         message.warning("Vui lòng đăng nhập để yêu thích sách");
         return;
       }
 
       if (isFavorite) {
-        // Nếu đã yêu thích thì gọi API hủy yêu thích
         await dispatch(unlikeBook(book.bookId));
         message.success("Đã bỏ yêu thích sách");
       } else {
-        // Nếu chưa yêu thích thì gọi API yêu thích
         await dispatch(likeBook(book.bookId));
         message.success("Đã thêm vào danh sách yêu thích");
       }
 
-      // Sau khi thao tác thành công, cập nhật lại danh sách sách yêu thích
+      // refresh server truth
       dispatch(fetchFavorite({ query: "" }));
     } catch (error) {
       console.error("Lỗi khi thao tác với sách yêu thích:", error);
@@ -251,51 +270,37 @@ const BookCard = ({ book: initialBook }) => {
     }
   };
 
-  const openBookDetailModal = () => {
-    setModalVisible(true);
-  };
+  const openBookDetailModal = () => setModalVisible(true);
 
-  const closeBookDetailModal = (updatedStars) => {
+  const closeBookDetailModal = (updatedStars?: IStars) => {
     setModalVisible(false);
     if (updatedStars) {
-      setBook((prevBook) => ({
-        ...prevBook,
+      setBook((prev) => ({
+        ...prev,
         stars: updatedStars,
       }));
-      // Cập nhật ngay lập tức thay vì chờ WebSocket
-      // console.log(`[BookCard ${componentId}] Cập nhật stars từ modal:`, updatedStars);
     }
-    // Luôn gọi fetchBookDetail() để cập nhật mọi thay đổi
+    // ensure full sync
     setTimeout(() => fetchBookDetail(), 500);
   };
 
   const fetchBookDetail = async () => {
     try {
-      // Kiểm tra nếu không có initialBook
       if (!initialBook) {
         console.error("initialBook không tồn tại trong fetchBookDetail");
         return;
       }
 
-      // console.log(`[BookCard ${componentId}] Đang lấy dữ liệu chi tiết sách`, initialBook.bookId);
-
-      // Luôn sử dụng API detail-book với bookId, bất kể có id hay không
       if (initialBook.bookId) {
         const response = await callGetBookDetailById(initialBook.bookId);
-        // console.log(`[BookCard ${componentId}] Nhận dữ liệu từ API:`, response.data);
-
-        if (response.data) {
-          setBook((prevBook) => ({
-            ...prevBook,
-            stars: response.data.stars,
+        if (response?.data) {
+          setBook((prev) => ({
+            ...prev,
+            stars: response?.data?.stars,
           }));
-          // console.log(`[BookCard ${componentId}] Cập nhật stars:`, response.data.stars);
         }
       } else {
-        console.error(
-          `[BookCard ${componentId}] Không có ID sách (bookId):`,
-          initialBook
-        );
+        console.error(`[BookCard ${componentId}] Không có bookId`, initialBook);
       }
     } catch (error) {
       console.error(`[BookCard ${componentId}] Lỗi lấy dữ liệu:`, error);
@@ -320,15 +325,18 @@ const BookCard = ({ book: initialBook }) => {
           ]}
         >
           <div className="flex items-center mb-4">
-            <Avatar src={book.user.image} icon={<UserOutlined />} size={40} />
+            <Avatar src={book?.user?.image} icon={<UserOutlined />} size={40} />
             <div className="ml-3">
-              <Link to={`/profile/${book.user.id}`} className="hover:underline">
-                <Text strong>{book.user.fullName}</Text>
+              <Link
+                to={`/profile/${book?.user?.id}`}
+                className="hover:underline"
+              >
+                <Text strong>{book?.user?.fullName}</Text>
               </Link>
               <div>
                 <Text type="secondary" className="text-xs">
                   <CalendarOutlined className="mr-1" />
-                  {formatDate(book.updatedAt)}
+                  {formatDate(book.updatedAt!)}
                 </Text>
               </div>
             </div>
@@ -357,7 +365,8 @@ const BookCard = ({ book: initialBook }) => {
                 alt={book.name}
                 src={book.bookImage || defaultImage}
                 className="object-cover rounded-lg"
-                style={{ height: "300px", width: "225px" }}
+                style={{ height: 300, width: 225 }}
+                loading="lazy"
               />
               <div className="book-actions flex gap-2 mt-2">
                 <Button
@@ -366,6 +375,7 @@ const BookCard = ({ book: initialBook }) => {
                   icon={<ShoppingCartOutlined />}
                   href={book.bookSaleLink}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Tìm mua
                 </Button>
@@ -404,14 +414,8 @@ const BookCard = ({ book: initialBook }) => {
               {book.categories && book.categories.length > 0 && (
                 <div className="mt-3">
                   <Text className="mr-2">Thể loại:</Text>
-                  {book.categories.map((category, index) => (
-                    <Tag
-                      key={`${
-                        category.categoryId || category.id || "cat"
-                      }-${index}-${book.bookId}`}
-                      color="blue"
-                      className="mb-1"
-                    >
+                  {book.categories.map((category) => (
+                    <Tag key={category.id} color="blue" className="mb-1">
                       {category.name}
                     </Tag>
                   ))}
@@ -442,7 +446,7 @@ const BookCard = ({ book: initialBook }) => {
         visible={modalVisible}
         bookId={book.bookId}
         onCancel={closeBookDetailModal}
-        user={user}
+        userId={user.id}
       />
     </>
   );

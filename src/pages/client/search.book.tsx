@@ -269,7 +269,8 @@ const SearchPage = () => {
                         <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 mr-5">
                           <img
                             src={
-                              user.image || "https://via.placeholder.com/150"
+                              user.image?.toString() ||
+                              "http://localhost:9000/book-rating/avatar.jpg"
                             }
                             alt={user.fullName}
                             className="w-full h-full object-cover"

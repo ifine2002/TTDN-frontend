@@ -1,19 +1,18 @@
 import { Button, Divider, Form, Input, message, notification } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import styles from "./../../styles/auth.module.scss";
-import { callLogin } from "./../../api/services";
-import { setUserLoginInfo } from "./../../redux/slice/accountSlice";
+import styles from "styles/auth.module.scss";
+import { callLogin } from "api/services";
+import { setUserLoginInfo } from "redux/slice/accountSlice";
+import { useAppDispatch } from "redux/hooks";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [isSubmit, setIsSubmit] = useState(false);
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
+  const dispatch = useAppDispatch();
 
-  let location = useLocation();
-  let params = new URLSearchParams(location.search);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
   const callback = params?.get("callback");
 
   useEffect(() => {
@@ -24,15 +23,15 @@ const LoginPage = () => {
     }
   }, []);
 
-  const onFinish = async (values) => {
+  const onFinish = async (values: any) => {
     const { username, password } = values;
     setIsSubmit(true);
     const res = await callLogin(username, password);
     setIsSubmit(false);
 
     if (res && res.status === 200) {
-      localStorage.setItem("access_token", res.data.access_token);
-      dispatch(setUserLoginInfo(res.data.user));
+      localStorage.setItem("access_token", res.data!.access_token);
+      dispatch(setUserLoginInfo(res.data!.user));
       message.success("Đăng nhập tài khoản thành công!");
       navigate(callback ? callback : "/");
     } else if (res && res.status === 401) {

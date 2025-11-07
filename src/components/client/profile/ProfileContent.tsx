@@ -1,24 +1,40 @@
 import { Tabs, Typography } from "antd";
 import { AuditOutlined, BookOutlined } from "@ant-design/icons";
-import BookList from "./../book/BookList";
+import BookList from "../book/BookList";
+import { IBookSearch, IPost, IUser } from "@/types/backend";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
-const ProfileContent = ({
-  userData,
-  books,
-  loading,
-  pagination,
-  handleLoadMore,
-  favoriteBooks,
-  loadingFavorite,
-  favoritePagination,
-  handleLoadMoreFavorite,
-  handleFavoritePageChange,
-  handleTabChange,
-  activeTab,
-}) => {
+interface IProps {
+  userData: IUser;
+  books: IPost[];
+  loading: boolean;
+  pagination: any;
+  handleLoadMore: () => void;
+  favoriteBooks: IBookSearch[];
+  loadingFavorite: boolean;
+  favoritePagination: any;
+  handleLoadMoreFavorite: () => void;
+  handleFavoritePageChange: (page: number, pageSize: number) => void;
+  handleTabChange: (v: string) => void;
+  activeTab: string;
+}
+const ProfileContent = (props: IProps) => {
+  const {
+    userData,
+    books,
+    loading,
+    pagination,
+    handleLoadMore,
+    favoriteBooks,
+    loadingFavorite,
+    favoritePagination,
+    handleLoadMoreFavorite,
+    handleFavoritePageChange,
+    handleTabChange,
+    activeTab,
+  } = props;
   return (
     <div className="profile-content">
       <Tabs
@@ -65,7 +81,8 @@ const ProfileContent = ({
                 Sách yêu thích
               </Title>
               <BookList
-                books={favoriteBooks}
+                books={[]}
+                favoriteBooks={favoriteBooks}
                 loading={loadingFavorite}
                 pagination={favoritePagination}
                 onLoadMore={handleLoadMoreFavorite}

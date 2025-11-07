@@ -12,7 +12,7 @@ import { useModalAndUI } from "hooks/useModalAndUI";
 // Components
 import ChangeInfoModal from "components/client/my-profile/ChangeInfoModal";
 import ProfileHeader from "components/client/my-profile/ProfileHeader";
-import FollowersModal from "components/client/my-profile/FollowersModal";
+import FollowersModal from "@/components/client/my-profile/FollowersModal";
 import ProfileContent from "components/client/profile/ProfileContent";
 import { IFollow } from "@/types/backend";
 

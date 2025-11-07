@@ -6,7 +6,7 @@ import "./ListReview.scss";
 import { IStars, IReviews } from "@/types/backend";
 
 interface IProps {
-  stars?: IStars;
+  stars?: IStars | null;
   listReview: IReviews[];
 }
 const ListReview = (props: IProps) => {
@@ -92,7 +92,7 @@ const ListReview = (props: IProps) => {
                       <Avatar
                         src={
                           review.image ||
-                          "http://localhost:9000/book-rating/avatar.png"
+                          "http://localhost:9000/book-rating/avatar.jpg"
                         }
                         size={40}
                       />

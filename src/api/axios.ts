@@ -28,7 +28,7 @@ const PUBLIC_APIS = [
 ];
 
 // Kiểm tra xem API có phải là public không
-const isPublicAPI = (url) => {
+const isPublicAPI = (url: string) => {
   const AUTH = ["/auth/logout", "/auth/account"];
   if (AUTH.some((api) => url.includes(api))) {
     return false;
@@ -38,10 +38,10 @@ const isPublicAPI = (url) => {
 };
 
 let isRefreshing = false;
-let failedQueue = [];
+let failedQueue: any = [];
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
+const processQueue = (error: any, token = null) => {
+  failedQueue.forEach((prom: any) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -79,7 +79,7 @@ const handleRefreshToken = async () => {
 
 instance.interceptors.request.use(function (config) {
   // Không thêm token cho public APIs
-  if (isPublicAPI(config.url)) {
+  if (isPublicAPI(config.url!)) {
     delete config.headers.Authorization;
     return config;
   }

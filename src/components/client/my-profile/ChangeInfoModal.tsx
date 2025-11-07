@@ -4,33 +4,48 @@ import {
   ProFormSelect,
   ProFormDatePicker,
 } from "@ant-design/pro-components";
-import { Upload, Avatar, Button, Form, message, Tabs } from "antd";
+import { Upload, Avatar, Button, Form, message, Tabs, UploadFile } from "antd";
 import { UserOutlined, PlusOutlined } from "@ant-design/icons";
 import { useState, useEffect, useRef } from "react";
 import {
   callFetchUserDetail,
   callUpdateUserProfile,
   callChangePassword,
-} from "./../../../api/services";
+} from "api/services";
 import dayjs from "dayjs";
 import "styles/change.info.modal.scss";
 import { isMobile } from "react-device-detect";
-
+import { RcFile, UploadChangeParam } from "antd/es/upload";
+import { UploadProps } from "antd/lib";
 const { TabPane } = Tabs;
 
-const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
+interface IProps {
+  editProfileVisible: boolean;
+  setEditProfileVisible: (visible: boolean) => void;
+  id: number;
+}
+
+interface IUploadFileWithOrigin extends UploadFile {
+  originFileObj?: RcFile;
+}
+
+const ChangeInfoModal = ({
+  editProfileVisible,
+  setEditProfileVisible,
+  id,
+}: IProps) => {
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
-  const [fileList, setFileList] = useState([]);
+  const [fileList, setFileList] = useState<IUploadFileWithOrigin[]>([]);
   const [isDeleteImage, setIsDeleteImage] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const uploadRef = useRef();
   const [activeModalTab, setActiveModalTab] = useState("change-info");
 
   useEffect(() => {
     if (editProfileVisible && id) {
       callFetchUserDetail(id)
-        .then((res) => {
+        .then((res: any) => {
           const data = res.data;
           form.setFieldsValue({
             fullName: data.fullName || "",
@@ -66,7 +81,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
   }, [editProfileVisible, id, form]);
 
   // Validate file trước khi upload
-  const beforeUpload = (file) => {
+  const beforeUpload = (file: RcFile) => {
     const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
     if (!isJpgOrPng) {
       message.error("Bạn chỉ có thể tải lên file JPG/PNG!");
@@ -79,7 +94,9 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
   };
 
   // Xử lý khi upload hoặc xóa ảnh
-  const handleChangeUpload = ({ fileList }) => {
+  const handleChangeUpload = ({
+    fileList,
+  }: UploadChangeParam<IUploadFileWithOrigin>) => {
     setFileList(fileList);
     if (fileList.length > 0 && fileList[0].originFileObj) {
       setIsDeleteImage(false);
@@ -102,7 +119,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
     setActiveModalTab("change-info");
   };
 
-  const handleFinish = async (values) => {
+  const handleFinish = async (values: any) => {
     if (activeModalTab === "change-info") {
       let image = undefined;
       if (fileList.length > 0 && fileList[0].originFileObj) {
@@ -126,7 +143,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
     }
   };
 
-  const handleChangePassword = async (values) => {
+  const handleChangePassword = async (values: any) => {
     try {
       const res = await callChangePassword(values);
       if (res && res.status === 200) {
@@ -138,6 +155,17 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
     } catch (error) {
       message.error("Đổi mật khẩu thất bại!");
     }
+  };
+
+  const dummyRequest: UploadProps["customRequest"] = (options) => {
+    const {
+      onSuccess /*, onError, onProgress, file, filename, data, headers, withCredentials*/,
+    } = options;
+
+    // Mô phỏng upload thành công
+    setTimeout(() => {
+      onSuccess?.("ok" as any); // body có thể là bất kỳ, onSuccess param là optional
+    }, 0);
   };
 
   return (
@@ -156,7 +184,6 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
         },
         style: { top: 30 },
         afterClose: () => handleReset(),
-        destroyOnClose: true,
         width: isMobile ? "100%" : "800px",
         keyboard: false,
         maskClosable: true,
@@ -200,11 +227,7 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                 onRemove={handleRemove}
                 maxCount={1}
                 showUploadList={false}
-                customRequest={({ file, onSuccess }) => {
-                  setTimeout(() => {
-                    onSuccess("ok");
-                  }, 0);
-                }}
+                customRequest={dummyRequest}
               />
               {fileList.length < 1 && (
                 <Button
@@ -213,7 +236,9 @@ const ChangeInfoModal = ({ editProfileVisible, setEditProfileVisible, id }) => {
                   size="small"
                   className="mt-2"
                   onClick={() => {
-                    document.querySelector("input[type=file]").click();
+                    document
+                      .querySelector<HTMLInputElement>("input[type=file]")
+                      ?.click();
                   }}
                 >
                   Thêm
