@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
 import { callFetchAllBookFavoriteOfUser } from "api/services";
 import queryString from "query-string";
+import { IBookSearch } from "@/types/backend";
 
 export const useFavoriteBooks = (userId?: number) => {
-  const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const [favoriteBooks, setFavoriteBooks] = useState<IBookSearch[]>([]);
   const [favoritePagination, setFavoritePagination] = useState({
     page: 1,
     pageSize: 10,

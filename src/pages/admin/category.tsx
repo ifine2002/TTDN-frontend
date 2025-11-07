@@ -1,27 +1,44 @@
 import DataTable from "@/components/client/data-table";
-import { useAppDispatch, useAppSelector } from "./../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Popconfirm, Space, message, notification } from "antd";
 import { useState, useRef } from "react";
 import dayjs from "dayjs";
-import { callDeleteCategory } from "./../../api/services";
+import { callDeleteCategory } from "api/services";
 import queryString from "query-string";
 import { sfLike } from "spring-filter-query-builder";
-import { fetchCategory } from "../../redux/slice/categorySlice";
-import ModalCategory from "./../../components/admin/category/modal.category";
+import { fetchCategory } from "redux/slice/categorySlice";
+import ModalCategory from "components/admin/category/modal.category";
+import { ICategory, SortOrder } from "types/backend";
+
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<"name" | "id" | "bookId" | "createdAt" | "updatedAt", SortOrder>
+>;
 
 const CategoryPage = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [dataInit, setDataInit] = useState(null);
+  const [dataInit, setDataInit] = useState<ICategory | null>(null);
 
-  const tableRef = useRef();
+  const actionRef = useRef<ActionType>();
 
   const isFetching = useAppSelector((state) => state.category.isFetching);
   const data = useAppSelector((state) => state.category.data);
   const categories = useAppSelector((state) => state.category.result);
   const dispatch = useAppDispatch();
 
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteCategory = async (id?: number) => {
     if (id) {
       const res = await callDeleteCategory(id);
       if (res && +res.status === 200) {
@@ -37,10 +54,10 @@ const CategoryPage = () => {
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<ICategory>[] = [
     {
       title: "Id",
       dataIndex: "id",
@@ -135,14 +152,14 @@ const CategoryPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
+    const filterArray = [];
     if (params.name) filterArray.push(`${sfLike("name", params.name)}`);
     if (params.description)
       filterArray.push(`${sfLike("description", params.description)}`);
@@ -153,7 +170,12 @@ const CategoryPage = () => {
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = ["id", "name", "createdAt", "updatedAt"];
+    const fields: Array<keyof Sorter> = [
+      "id",
+      "name",
+      "createdAt",
+      "updatedAt",
+    ];
 
     if (sort) {
       for (const field of fields) {
@@ -177,15 +199,20 @@ const CategoryPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
+        actionRef={actionRef}
         headerTitle="Danh sách Category"
         rowKey="id"
         loading={isFetching}
         columns={columns}
         dataSource={categories}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchCategory({ query }));
+        request={async (params, sort) => {
+          const query = buildQuery(params as QueryParams, sort as Sorter);
+          const res = await dispatch(fetchCategory({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -203,17 +230,15 @@ const CategoryPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
+        toolBarRender={(_action, _rows) => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
       <ModalCategory
         openModal={openModal}

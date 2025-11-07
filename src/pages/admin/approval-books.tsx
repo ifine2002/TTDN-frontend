@@ -7,8 +7,6 @@ import {
   Badge,
   Tag,
   Image,
-  Descriptions,
-  Modal,
   Tooltip,
 } from "antd";
 import {
@@ -16,21 +14,40 @@ import {
   CloseCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import DataTable from "../../components/client/data-table/index";
+import DataTable from "components/client/data-table/index";
 import dayjs from "dayjs";
 import { sfLike } from "spring-filter-query-builder";
 import queryString from "query-string";
-import SockJS from "sockjs-client/dist/sockjs";
+import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import {
   callApproveBook,
   callRejectBook,
   callGetApproveBooks,
-} from "../../api/services";
-import BookDetailModal from "../../components/admin/book/modal.book-detail";
+} from "api/services";
+import BookDetailModal from "components/admin/book/modal.book-detail";
+import { IBookAdmin, IPost } from "@/types/backend";
+
+import { SortOrder } from "types/backend";
+
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<"name" | "id" | "createdAt" | "createdBy", SortOrder>
+>;
 
 const ApprovalBooksPage = () => {
-  const [books, setBooks] = useState([]);
+  const [realtimeItems, setRealtimeItems] = useState<IBookAdmin[]>([]);
 
   const [data, setData] = useState({
     page: 1,
@@ -38,77 +55,42 @@ const ApprovalBooksPage = () => {
     pages: 0,
     total: 0,
   });
-  const [isFetching, setIsFetching] = useState(false);
-  const [stompClient, setStompClient] = useState(null);
   const [openViewDetail, setOpenViewDetail] = useState(false);
-  const [bookDetail, setBookDetail] = useState(null);
+  const [bookDetail, setBookDetail] = useState<IBookAdmin | null>(null);
 
-  const tableRef = useRef();
+  const actionRef = useRef<ActionType>();
 
   // Kết nối WebSocket
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => {
-        // console.log(str);
-      },
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
     });
 
     client.onConnect = () => {
-      // console.log('Connected to WebSocket');
-
-      // Đăng ký nhận thông báo khi có sách mới được đăng
       client.subscribe("/topic/admin-books", (message) => {
-        try {
-          const notificationData = JSON.parse(message.body);
-          // console.log('WebSocket notification received:', notificationData);
-
-          // Phân biệt loại thông báo dựa trên action
-          const action = notificationData.action;
-
-          if (action === "create") {
-            const newBook = notificationData.data;
-            // Cập nhật danh sách sách nếu đang ở trang đầu tiên
-            if (data.page === 1) {
-              setBooks((prevBooks) => {
-                // Kiểm tra nếu sách đã tồn tại trong danh sách
-                const existingBookIndex = prevBooks.findIndex(
-                  (book) => book.bookId === newBook.bookId
-                );
-
-                if (existingBookIndex >= 0) {
-                  // Cập nhật sách đã tồn tại
-                  const updatedBooks = [...prevBooks];
-                  updatedBooks[existingBookIndex] = newBook;
-                  return updatedBooks;
-                } else {
-                  // Thêm sách mới vào đầu danh sách
-                  return [newBook, ...prevBooks];
-                }
-              });
-
-              // Cập nhật tổng số sách
-              setData((prevData) => ({
-                ...prevData,
-                total: prevData.total + 1,
-              }));
-            } else {
-              // Thông báo có sách mới nếu không ở trang đầu
-              notification.info({
-                message: "Sách mới",
-                description: `Sách "${newBook.bookName}" vừa được đăng và đang chờ duyệt`,
-              });
-            }
-          } else if (action === "approve" || action === "reject") {
-            // Reload dữ liệu khi có sách được duyệt hoặc từ chối
-            reloadTable();
+        const n = JSON.parse(message.body);
+        if (n.action === "create") {
+          const newBook: IBookAdmin = n.data;
+          if (data.page === 1) {
+            setRealtimeItems((prev) => {
+              const has = prev.some((x) => x.bookId === newBook.bookId);
+              return has
+                ? prev.map((x) => (x.bookId === newBook.bookId ? newBook : x))
+                : [newBook, ...prev];
+            });
+            setData((prev) => ({ ...prev, total: prev.total + 1 }));
+            actionRef.current?.reload?.();
+          } else {
+            notification.info({
+              message: "Sách mới",
+              description: `Sách "${newBook.bookName}" vừa được đăng và đang chờ duyệt`,
+            });
           }
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error);
+        }
+        if (n.action === "approve" || n.action === "reject") {
+          reloadTable();
         }
       });
     };
@@ -119,7 +101,6 @@ const ApprovalBooksPage = () => {
     };
 
     client.activate();
-    setStompClient(client);
 
     return () => {
       if (client) {
@@ -129,7 +110,7 @@ const ApprovalBooksPage = () => {
   }, [data.page]);
 
   // Xử lý duyệt sách
-  const handleApproveBook = async (bookId) => {
+  const handleApproveBook = async (bookId: number) => {
     try {
       const res = await callApproveBook(bookId);
       if (res.status === 200) {
@@ -141,7 +122,7 @@ const ApprovalBooksPage = () => {
           description: res.message || "Không thể duyệt sách",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       notification.error({
         message: "Có lỗi xảy ra",
         description: error.message || "Không thể duyệt sách",
@@ -150,7 +131,7 @@ const ApprovalBooksPage = () => {
   };
 
   // Xử lý từ chối sách
-  const handleRejectBook = async (bookId) => {
+  const handleRejectBook = async (bookId: number) => {
     try {
       const res = await callRejectBook(bookId);
       if (res.status === 200) {
@@ -162,7 +143,7 @@ const ApprovalBooksPage = () => {
           description: res.message || "Không thể từ chối sách",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       notification.error({
         message: "Có lỗi xảy ra",
         description: error.message || "Không thể từ chối sách",
@@ -171,16 +152,17 @@ const ApprovalBooksPage = () => {
   };
 
   // Xem chi tiết sách
-  const handleViewDetail = (record) => {
+  const handleViewDetail = (record: IBookAdmin) => {
     setBookDetail(record);
     setOpenViewDetail(true);
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    setRealtimeItems([]);
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<IBookAdmin>[] = [
     {
       title: "Id",
       dataIndex: "bookId",
@@ -193,7 +175,7 @@ const ApprovalBooksPage = () => {
       title: "Book Image",
       dataIndex: "imageBook",
       width: 100,
-      render: (image) => <Image width={80} src={image} alt="book" />,
+      render: (image) => <Image width={80} src={image as string} alt="book" />,
       hideInSearch: true,
     },
     {
@@ -234,7 +216,8 @@ const ApprovalBooksPage = () => {
     {
       title: "Categories",
       dataIndex: "categories",
-      render: (categories) => {
+      render: (_, record) => {
+        const categories = record.categories;
         if (!categories || categories.length === 0) return "-";
         return (
           <div style={{ maxWidth: "200px" }}>
@@ -263,7 +246,10 @@ const ApprovalBooksPage = () => {
       dataIndex: "createdAt",
       width: 180,
       sorter: true,
-      render: (text) => (text ? dayjs(text).format("DD-MM-YYYY HH:mm:ss") : ""),
+      render: (_, record) => {
+        const text = record.createdAt;
+        return text ? dayjs(text).format("DD-MM-YYYY HH:mm:ss") : "";
+      },
       hideInSearch: true,
     },
     {
@@ -299,14 +285,14 @@ const ApprovalBooksPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
+    const filterArray = [];
     if (params.bookName) filterArray.push(`${sfLike("name", params.bookName)}`);
     if (params.createdBy)
       filterArray.push(`${sfLike("createdBy", params.createdBy)}`);
@@ -318,15 +304,12 @@ const ApprovalBooksPage = () => {
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-
-    if (sort && sort.bookId) {
-      sortBy = sort.bookId === "ascend" ? "sort=id,asc" : "sort=id,desc";
-    }
-    if (sort && sort.bookName) {
-      sortBy = sort.bookName === "ascend" ? "sort=name,asc" : "sort=name,desc";
-    }
-
-    const fields = ["createdBy", "createdAt"];
+    const fields: Array<keyof Sorter> = [
+      "id",
+      "name",
+      "createdBy",
+      "createdAt",
+    ];
     if (sort) {
       for (const field of fields) {
         if (sort[field]) {
@@ -349,7 +332,7 @@ const ApprovalBooksPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
+        actionRef={actionRef}
         headerTitle={
           <div className="flex items-center">
             <span>Pending list</span>
@@ -364,33 +347,54 @@ const ApprovalBooksPage = () => {
           </div>
         }
         rowKey="bookId"
-        loading={isFetching}
         columns={columns}
-        dataSource={books}
-        request={async (params, sort, filter) => {
-          setIsFetching(true);
-          const query = buildQuery(params, sort, filter);
+        request={async (
+          params: QueryParams,
+          sort: Sorter,
+          filter: Record<string, unknown>
+        ) => {
           try {
+            // setIsFetching(true);
+            const query = buildQuery(params, sort);
             const res = await callGetApproveBooks(query);
-            if (res && res.data) {
-              setBooks(res.data.result || []);
+
+            if (res?.data) {
               setData({
                 page: res.data.page,
                 pageSize: res.data.pageSize,
                 pages: res.data.totalPages,
                 total: res.data.totalElements,
               });
-              setIsFetching(false);
             }
-            // setIsFetching(false);
-          } catch (error) {
-            console.error("Lỗi khi lấy danh sách sách:", error);
+
+            return {
+              data: (res?.data?.result as IBookAdmin[]) ?? [],
+              success: true,
+              total: res?.data?.totalElements ?? 0,
+            };
+          } catch (e) {
             notification.error({
               message: "Có lỗi xảy ra",
               description: "Không thể lấy danh sách sách chờ duyệt",
             });
-            // setIsFetching(true);
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          } finally {
+            // setIsFetching(false);
           }
+        }}
+        postData={(serverData: IBookAdmin[]) => {
+          const merged = [
+            ...realtimeItems.filter(
+              (r) => !serverData.some((s) => s.bookId === r.bookId)
+            ),
+            ...serverData,
+          ];
+          // optional: cắt theo pageSize để tránh “tràn” hàng trên trang 1
+          return data.page === 1 ? merged.slice(0, data.pageSize) : serverData;
         }}
         scroll={{ x: true }}
         pagination={{

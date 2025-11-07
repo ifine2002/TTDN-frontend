@@ -284,7 +284,7 @@ export const callCreateBook = (data: IBook) => {
   });
 };
 
-export const callUpdateBook = (data: IBook, id: string) => {
+export const callUpdateBook = (data: IBook, id: number) => {
   // Tạo FormData object
   const formData = new FormData();
   if (data.name) formData.append("name", data.name);
@@ -331,7 +331,7 @@ export const callUpdateBook = (data: IBook, id: string) => {
   });
 };
 
-export const callDeleteBook = (id: string) => {
+export const callDeleteBook = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/book/${id}`);
 };
 
@@ -355,12 +355,12 @@ export const callGetApproveBooks = (query: string) => {
 };
 
 // API duyệt sách
-export const callApproveBook = (bookId: string) => {
+export const callApproveBook = (bookId: number) => {
   return axios.patch<IBackendRes<null>>(`/book/approve/${bookId}`);
 };
 
 // API từ chối sách
-export const callRejectBook = (bookId: string) => {
+export const callRejectBook = (bookId: number) => {
   return axios.patch<IBackendRes<null>>(`/book/reject/${bookId}`);
 };
 
@@ -490,7 +490,7 @@ export const callCreatePermission = (permission: IPermission) => {
   });
 };
 
-export const callUpdatePermission = (permission: IPermission, id: string) => {
+export const callUpdatePermission = (permission: IPermission, id: number) => {
   return axios.put<IBackendRes<IPermission>>(`/permission/${id}`, {
     name: permission.name,
     apiPath: permission.apiPath,
@@ -499,7 +499,7 @@ export const callUpdatePermission = (permission: IPermission, id: string) => {
   });
 };
 
-export const callDeletePermission = (id: string) => {
+export const callDeletePermission = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/permission/${id}`);
 };
 
@@ -536,7 +536,7 @@ export const callCreateCategory = (data: ICategory) => {
   });
 };
 
-export const callUpdateCategory = (data: ICategory, id: string) => {
+export const callUpdateCategory = (data: ICategory, id: number) => {
   // Tạo FormData object
   const formData = new FormData();
 
@@ -557,7 +557,7 @@ export const callUpdateCategory = (data: ICategory, id: string) => {
   });
 };
 
-export const callDeleteCategory = (id: string) => {
+export const callDeleteCategory = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/category/${id}`);
 };
 
@@ -584,7 +584,7 @@ export const callCreateFollow = (follow: IFollow) => {
 };
 
 //delete follow
-export const callDeleteFollow = (id: string) => {
+export const callDeleteFollow = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/follow/${id}`);
 };
 
@@ -649,14 +649,14 @@ export const callCreateComment = (comment: IComment) => {
   });
 };
 
-export const callUpdateComment = (comment: IComment, id: string) => {
+export const callUpdateComment = (comment: IComment, id: number) => {
   return axios.put<IBackendRes<IComment>>(`/review/comment/${id}`, {
     comment: comment.comment,
     ratingComment: comment.ratingComment,
   });
 };
 
-export const callDeleteComment = (id: string) => {
+export const callDeleteComment = (id: number) => {
   return axios.delete<IBackendRes<null>>(`/review/comment/${id}`);
 };
 

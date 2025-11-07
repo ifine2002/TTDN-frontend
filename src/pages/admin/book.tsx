@@ -1,67 +1,73 @@
-import DataTable from "./../../components/client/data-table/index";
-import { useAppDispatch, useAppSelector } from "./../../redux/hooks";
+import DataTable from "components/client/data-table/index";
+import { fetchBook } from "redux/slice/bookSlice";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Popconfirm, Space, message, notification } from "antd";
 import { useState, useRef } from "react";
 import dayjs from "dayjs";
-import { callDeletePermission } from "./../../api/services";
+import { callDeleteBook } from "api/services";
 import queryString from "query-string";
-import { fetchPermission } from "./../../redux/slice/permissionSlice";
-import ViewDetailPermission from "./../../components/admin/permission/view.permission";
-import { colorMethod } from "./../../components/share/utils";
-import ModalPermission from "../../components/admin/permission/modal.permission";
 import { sfLike } from "spring-filter-query-builder";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
+import ModalBook from "components/admin/book/modal.book";
+import { IBook } from "@/types/backend";
+import { SortOrder } from "types/backend";
 
-const PermissionPage = () => {
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<"name" | "id" | "createdAt" | "updatedAt" | "createdBy", SortOrder>
+>;
+
+const BookPage = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [dataInit, setDataInit] = useState(null);
-  const [openViewDetail, setOpenViewDetail] = useState(false);
+  const [dataInit, setDataInit] = useState<IBook | null>(null);
 
-  const tableRef = useRef();
+  const actionRef = useRef<ActionType>();
 
-  const isFetching = useAppSelector((state) => state.permission.isFetching);
-  const data = useAppSelector((state) => state.permission.data);
-  const permissions = useAppSelector((state) => state.permission.result);
   const dispatch = useAppDispatch();
+  const isFetching = useAppSelector((state) => state.book.isFetching);
+  const data = useAppSelector((state) => state.book.data || {});
+  const books = useAppSelector((state) => state.book.result || []);
 
-  const handleDeletePermission = async (id) => {
+  const handleDeleteBook = async (id?: number) => {
     if (id) {
-      const res = await callDeletePermission(id);
-      if (res && res.status === 200) {
-        message.success("Xóa Permission thành công");
+      const res = await callDeleteBook(id);
+      if (+res.status === 200) {
+        message.success("Xóa Book thành công");
         reloadTable();
       } else {
         notification.error({
           message: "Có lỗi xảy ra",
-          description: res.error,
+          description: res.message,
         });
       }
     }
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<IBook>[] = [
     {
       title: "Id",
       dataIndex: "id",
       width: 50,
       render: (text, record, index, action) => {
-        return (
-          <a
-            href="#"
-            onClick={() => {
-              setOpenViewDetail(true);
-              setDataInit(record);
-            }}
-          >
-            {record.id}
-          </a>
-        );
+        return <span>{record.id}</span>;
       },
       hideInSearch: true,
+      sorter: true,
     },
     {
       title: "Name",
@@ -69,32 +75,32 @@ const PermissionPage = () => {
       sorter: true,
     },
     {
-      title: "API",
-      dataIndex: "apiPath",
-      sorter: true,
+      title: "Description",
+      dataIndex: "description",
     },
+
     {
-      title: "Method",
-      dataIndex: "method",
-      sorter: true,
-      render(dom, entity, index, action, schema) {
-        return (
-          <p
-            style={{
-              paddingLeft: 10,
-              fontWeight: "bold",
-              marginBottom: 0,
-              color: colorMethod(entity?.method),
-            }}
-          >
-            {entity?.method || ""}
-          </p>
-        );
+      title: "Category",
+      dataIndex: "categories",
+      render: (categories) => {
+        if (
+          !categories ||
+          !Array.isArray(categories) ||
+          categories.length === 0
+        )
+          return "-";
+        return categories.map((cat) => cat.name).join(", ");
+      },
+      fieldProps: {
+        placeholder: "Tìm kiếm theo tên category",
       },
     },
     {
-      title: "Module",
-      dataIndex: "module",
+      title: "CreatedBy",
+      dataIndex: "createdBy",
+      fieldProps: {
+        placeholder: "Tìm kiếm theo người tạo",
+      },
       sorter: true,
     },
     {
@@ -102,7 +108,7 @@ const PermissionPage = () => {
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
-      render: (text, record, index, action) => {
+      render: (text, record) => {
         return (
           <>
             {record.createdAt
@@ -118,7 +124,7 @@ const PermissionPage = () => {
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
-      render: (text, record, index, action) => {
+      render: (text, record) => {
         return (
           <>
             {record.updatedAt
@@ -133,7 +139,7 @@ const PermissionPage = () => {
       title: "Actions",
       hideInSearch: true,
       width: 50,
-      render: (_value, entity, _index, _action) => (
+      render: (_value, entity) => (
         <Space>
           <EditOutlined
             style={{
@@ -146,15 +152,23 @@ const PermissionPage = () => {
               setDataInit(entity);
             }}
           />
+
           <Popconfirm
             placement="leftTop"
-            title={"Xác nhận xóa permission"}
-            description={"Bạn có chắc chắn muốn xóa permission này ?"}
-            onConfirm={() => handleDeletePermission(entity.id)}
+            title={"Xác nhận xóa book"}
+            description={"Bạn có chắc chắn muốn xóa book này ?"}
+            onConfirm={(e) => {
+              e?.stopPropagation();
+              handleDeleteBook(entity?.id);
+            }}
+            onCancel={(e) => e?.stopPropagation()}
             okText="Xác nhận"
             cancelText="Hủy"
           >
-            <span style={{ cursor: "pointer", margin: "0 10px" }}>
+            <span
+              style={{ cursor: "pointer", margin: "0 10px" }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <DeleteOutlined
                 style={{
                   fontSize: 20,
@@ -168,32 +182,32 @@ const PermissionPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
+    const filterArray = [];
 
     if (params.name) filterArray.push(`${sfLike("name", params.name)}`);
-    if (params.apiPath)
-      filterArray.push(`${sfLike("apiPath", params.apiPath)}`);
-    if (params.method) filterArray.push(`${sfLike("method", params.method)}`);
-    if (params.module) filterArray.push(`${sfLike("module", params.module)}`);
-
+    if (params.description)
+      filterArray.push(`${sfLike("description", params.description)}`);
+    if (params.categories)
+      filterArray.push(`${sfLike("categories.name", params.categories)}`);
+    if (params.createdBy)
+      filterArray.push(`${sfLike("createdBy", params.createdBy)}`);
     query.filter = filterArray.join(" and ");
-    if (!query.filter) delete query.filter;
 
+    if (!query.filter) delete query.filter;
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = [
+    const fields: Array<keyof Sorter> = [
+      "id",
       "name",
-      "apiPath",
-      "method",
-      "module",
+      "createdBy",
       "createdAt",
       "updatedAt",
     ];
@@ -220,15 +234,20 @@ const PermissionPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
-        headerTitle="Danh sách Permissions (Quyền Hạn)"
+        actionRef={actionRef}
+        headerTitle="Danh sách Books"
         rowKey="id"
         loading={isFetching}
         columns={columns}
-        dataSource={permissions}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchPermission({ query }));
+        dataSource={books}
+        request={async (params: QueryParams, sort: Sorter) => {
+          const query = buildQuery(params, sort);
+          const res = await dispatch(fetchBook({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -246,29 +265,20 @@ const PermissionPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
+        toolBarRender={() => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
-      <ModalPermission
+      <ModalBook
         openModal={openModal}
         setOpenModal={setOpenModal}
         reloadTable={reloadTable}
-        dataInit={dataInit}
-        setDataInit={setDataInit}
-      />
-
-      <ViewDetailPermission
-        onClose={setOpenViewDetail}
-        open={openViewDetail}
         dataInit={dataInit}
         setDataInit={setDataInit}
       />
@@ -276,4 +286,4 @@ const PermissionPage = () => {
   );
 };
 
-export default PermissionPage;
+export default BookPage;

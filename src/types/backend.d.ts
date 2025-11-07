@@ -80,16 +80,16 @@ export interface IBook {
   name: string;
   description: string;
   image?: string | File;
-  publishedDate: string | Date;
+  publishedDate?: string | Date;
   author: string;
   language: string;
   bookFormat: string;
   bookSaleLink: string;
   status?: string;
   deleteImage?: boolean;
-  categoryIds: number[];
+  categoryIds?: number[];
   categories?: {
-    id: string;
+    id: number;
     name: string;
   }[];
   reviews?: IReviews[];
@@ -101,7 +101,7 @@ export interface IBook {
 }
 
 export interface IBookAdmin {
-  bookId: string;
+  bookId: number;
   bookName: string;
   description: string;
   imageBook: string;
@@ -111,7 +111,7 @@ export interface IBookAdmin {
   bookFormat: string;
   bookSaleLink: string;
   categories?: {
-    id: string;
+    id: number;
     name: string;
   }[];
   userId: string;
@@ -144,11 +144,11 @@ export interface IPost {
   bookFormat: string;
   bookSaleLink: string;
   categories?: {
-    id: string;
+    id: number;
     name: string;
   }[];
   user?: {
-    id: string;
+    id: number;
     fullName: string;
     image: string;
   };
@@ -191,7 +191,7 @@ export interface IPagination {
 }
 
 export interface IPermission {
-  id?: string;
+  id?: number;
   name?: string;
   apiPath?: string;
   method?: string;
@@ -228,7 +228,7 @@ export interface ICategory {
   id?: number;
   name: string;
   description?: string;
-  image?: string;
+  image?: string | File;
   deleteImage?: boolean;
   active?: boolean;
 
@@ -239,7 +239,7 @@ export interface ICategory {
 }
 
 export interface IFollow {
-  id?: string;
+  id?: number;
   followerId?: number;
   followingId?: number;
 
@@ -260,10 +260,10 @@ export interface IRating {
 }
 
 export interface IComment {
-  id?: string;
-  userId: string;
-  bookId: string;
-  comment: string;
+  id?: number;
+  userId?: number;
+  bookId?: number;
+  comment?: string;
   ratingComment?: boolean;
 
   createdBy?: string;

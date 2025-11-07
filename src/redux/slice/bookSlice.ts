@@ -1,16 +1,28 @@
+import { IBook } from "@/types/backend";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { callFetchBook } from "../../api/services";
+import { callFetchBook } from "api/services";
+
+interface IState {
+  isFetching: boolean;
+  data: {
+    page: number;
+    pageSize: number;
+    pages: number;
+    total: number;
+  };
+  result: IBook[];
+}
 
 // First, create the thunk
 export const fetchBook = createAsyncThunk(
   "book/fetchBook",
-  async ({ query }) => {
+  async ({ query }: { query: string }) => {
     const response = await callFetchBook(query);
     return response;
   }
 );
 
-const initialState = {
+const initialState: IState = {
   isFetching: true,
   data: {
     page: 1,

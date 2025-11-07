@@ -72,7 +72,7 @@ const ModuleApi = (props: IProps) => {
     }
   };
 
-  const handleSingleCheck = (value: boolean, child: string, parent: string) => {
+  const handleSingleCheck = (value: boolean, child: number, parent: string) => {
     form.setFieldValue(["permissions", child], value);
 
     //check all
@@ -83,7 +83,7 @@ const ModuleApi = (props: IProps) => {
       );
       if (restPermission && restPermission.length) {
         const allTrue = restPermission.every((item) =>
-          form.getFieldValue(["permissions", item.id as string])
+          form.getFieldValue(["permissions", item.id])
         );
         form.setFieldValue(["permissions", parent], allTrue && value);
       }
@@ -126,11 +126,11 @@ const ModuleApi = (props: IProps) => {
                   }}
                 >
                   <ProFormSwitch
-                    name={["permissions", value.id as string]}
+                    name={["permissions", value.id]}
                     fieldProps={{
                       defaultChecked: false,
                       onChange: (v) =>
-                        handleSingleCheck(v, value.id as string, item.module),
+                        handleSingleCheck(v, value.id!, item.module),
                     }}
                   />
                 </div>

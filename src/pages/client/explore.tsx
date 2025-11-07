@@ -8,12 +8,6 @@ import { Subject } from "rxjs";
 import { debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
 import { IBookSearch } from "types/backend";
 
-interface ICategoryOption {
-  label: string;
-  value: string;
-  key?: number;
-}
-
 interface IBookPagination {
   current: number;
   pageSize: number;
@@ -29,6 +23,12 @@ interface IQueryParams {
   page: number;
   size: number;
   filter?: string;
+}
+
+interface ICategoryOption {
+  label?: string;
+  value?: string;
+  key?: number;
 }
 
 const ExplorePage = () => {

@@ -1,27 +1,43 @@
-import DataTable from "./../../components/client/data-table/index";
-import { useAppDispatch, useAppSelector } from "./../../redux/hooks";
+import DataTable from "components/client/data-table/index";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Popconfirm, Space, message, notification } from "antd";
 import { useRef, useState } from "react";
 import dayjs from "dayjs";
-import { callDeleteComment } from "./../../api/services";
+import { callDeleteComment } from "api/services";
 import queryString from "query-string";
 import { sfEqual, sfLike } from "spring-filter-query-builder";
-import { fetchComment } from "../../redux/slice/commentSlice";
-import ModalComment from "../../components/admin/comment/modal.comment";
+import { fetchComment } from "redux/slice/commentSlice";
+import ModalComment from "components/admin/comment/modal.comment";
+import { IComment, SortOrder } from "types/backend";
+
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<"userId" | "id" | "bookId" | "createdAt" | "updatedAt", SortOrder>
+>;
 
 const CommentPage = () => {
-  const [dataInit, setDataInit] = useState(null);
-  const tableRef = useRef();
+  const [dataInit, setDataInit] = useState<IComment | null>(null);
+  const actionRef = useRef<ActionType>();
 
   const [openModal, setOpenModal] = useState(false);
   const isFetching = useAppSelector((state) => state.comment.isFetching);
   const data = useAppSelector((state) => state.comment.data);
-  const comments = useAppSelector((state) => state.comment.result);
 
   const dispatch = useAppDispatch();
 
-  const handleDeleteComment = async (id) => {
+  const handleDeleteComment = async (id: number) => {
     if (id) {
       const res = await callDeleteComment(id);
       if (res && res.status === 200) {
@@ -37,10 +53,10 @@ const CommentPage = () => {
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<IComment>[] = [
     {
       title: "Id",
       dataIndex: "id",
@@ -141,7 +157,7 @@ const CommentPage = () => {
             placement="leftTop"
             title={"Xác nhận xóa comment"}
             description={"Bạn có chắc chắn muốn xóa comment này ?"}
-            onConfirm={() => handleDeleteComment(entity.id)}
+            onConfirm={() => handleDeleteComment(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
           >
@@ -159,20 +175,16 @@ const CommentPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
-    if (params.ratingComment === "true") {
-      const isBoolean = params.ratingComment === "true";
-      filterArray.push(`${sfEqual("isRatingComment", isBoolean)}`);
-    }
-    if (params.ratingComment === "false") {
-      filterArray.push(`isRatingComment : 'false'`);
+    const filterArray = [];
+    if (params.ratingComment === "true" || params.ratingComment === "false") {
+      filterArray.push(sfEqual("isRatingComment", params.ratingComment));
     }
     if (params.id) filterArray.push(`${sfLike("id", params.id)}`);
     if (params.comment)
@@ -185,7 +197,13 @@ const CommentPage = () => {
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = ["userId", "bookId", "id", "createdAt", "updatedAt"];
+    const fields: Array<keyof Sorter> = [
+      "userId",
+      "bookId",
+      "id",
+      "createdAt",
+      "updatedAt",
+    ];
 
     if (sort) {
       for (const field of fields) {
@@ -207,15 +225,19 @@ const CommentPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
+        actionRef={actionRef}
         headerTitle="Danh sách Rating"
         rowKey="id"
         loading={isFetching}
         columns={columns}
-        dataSource={comments}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchComment({ query }));
+        request={async (params, sort) => {
+          const query = buildQuery(params as QueryParams, sort as Sorter);
+          const res = await dispatch(fetchComment({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -233,17 +255,15 @@ const CommentPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
+        toolBarRender={(_action, _rows) => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
       <ModalComment
         openModal={openModal}

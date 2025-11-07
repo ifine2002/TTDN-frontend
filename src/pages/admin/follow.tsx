@@ -1,25 +1,43 @@
-import DataTable from "./../../components/client/data-table/index";
-import { useAppDispatch, useAppSelector } from "./../../redux/hooks";
+import DataTable from "components/client/data-table/index";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Popconfirm, Space, message, notification } from "antd";
 import { useRef, useState } from "react";
 import dayjs from "dayjs";
-import { callDeleteFollow } from "./../../api/services";
+import { callDeleteFollow } from "api/services";
 import queryString from "query-string";
-import { fetchFollow } from "./../../redux/slice/followSlice";
+import { fetchFollow } from "redux/slice/followSlice";
 import { sfLike } from "spring-filter-query-builder";
-import ModalFollow from "../../components/admin/follow/modal.follow";
+import { IFollow, SortOrder } from "types/backend";
+
+import type {
+  ProColumns,
+  ActionType,
+  ParamsType,
+} from "@ant-design/pro-components";
+
+interface QueryParams extends ParamsType {
+  current: number;
+  pageSize: number;
+  name?: string;
+}
+
+type Sorter = Partial<
+  Record<
+    "followerId" | "id" | "followingId" | "createdAt" | "updatedAt",
+    SortOrder
+  >
+>;
 
 const FollowPage = () => {
-  const tableRef = useRef();
+  const actionRef = useRef<ActionType>();
   const [openModal, setOpenModal] = useState(false);
   const isFetching = useAppSelector((state) => state.follow.follows.isFetching);
   const data = useAppSelector((state) => state.follow.follows.data);
-  const follows = useAppSelector((state) => state.follow.follows.result);
 
   const dispatch = useAppDispatch();
 
-  const handleDeleteFollow = async (id) => {
+  const handleDeleteFollow = async (id: number) => {
     if (id) {
       const res = await callDeleteFollow(id);
       if (res && res.status === 200) {
@@ -35,10 +53,10 @@ const FollowPage = () => {
   };
 
   const reloadTable = () => {
-    tableRef?.current?.reload();
+    actionRef?.current?.reload();
   };
 
-  const columns = [
+  const columns: ProColumns<IFollow>[] = [
     {
       title: "Id",
       dataIndex: "id",
@@ -94,7 +112,7 @@ const FollowPage = () => {
             placement="leftTop"
             title={"Xác nhận xóa follow"}
             description={"Bạn có chắc chắn muốn xóa follow này ?"}
-            onConfirm={() => handleDeleteFollow(entity.id)}
+            onConfirm={() => handleDeleteFollow(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
           >
@@ -112,14 +130,14 @@ const FollowPage = () => {
     },
   ];
 
-  const buildQuery = (params, sort, filter) => {
-    const query = {
+  const buildQuery = (params: QueryParams, sort: Sorter) => {
+    const query: { page: number; size: number; filter?: string } = {
       page: params.current - 1,
       size: params.pageSize,
       filter: "",
     };
 
-    let filterArray = [];
+    const filterArray = [];
     if (params.id) filterArray.push(`${sfLike("id", params.id)}`);
     if (params.followerId)
       filterArray.push(`${sfLike("follower.id", params.followerId)}`);
@@ -133,7 +151,7 @@ const FollowPage = () => {
     let temp = queryString.stringify(query);
 
     let sortBy = "";
-    const fields = [
+    const fields: Array<keyof Sorter> = [
       "followerId",
       "followingId",
       "id",
@@ -162,15 +180,19 @@ const FollowPage = () => {
   return (
     <div>
       <DataTable
-        actionRef={tableRef}
+        actionRef={actionRef}
         headerTitle="Danh sách Follow"
         rowKey="id"
         loading={isFetching}
         columns={columns}
-        dataSource={follows}
-        request={async (params, sort, filter) => {
-          const query = buildQuery(params, sort, filter);
-          dispatch(fetchFollow({ query }));
+        request={async (params, sort) => {
+          const query = buildQuery(params as QueryParams, sort as Sorter);
+          const res = await dispatch(fetchFollow({ query })).unwrap();
+          return {
+            data: res?.data?.result ?? [],
+            success: true,
+            total: res?.data?.totalElements,
+          };
         }}
         scroll={{ x: true }}
         pagination={{
@@ -188,22 +210,15 @@ const FollowPage = () => {
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => {
-          return (
-            <Button
-              icon={<PlusOutlined />}
-              type="primary"
-              onClick={() => setOpenModal(true)}
-            >
-              Thêm mới
-            </Button>
-          );
-        }}
-      />
-      <ModalFollow
-        openModal={openModal}
-        setOpenModal={setOpenModal}
-        reloadTable={reloadTable}
+        toolBarRender={(_action, _rows) => [
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModal(true)}
+          >
+            Thêm mới
+          </Button>,
+        ]}
       />
     </div>
   );
