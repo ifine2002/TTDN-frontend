@@ -50,6 +50,11 @@
         .ant-input-search-button {
           display: none;
         }
+
+        // Ẩn thanh tìm kiếm khi màn hình < 576px
+        @media (max-width: 575.98px) {
+          display: none;
+        }
       }
 
       .extra {
@@ -90,24 +95,48 @@
     @media (max-width: 768px) {
       .header-mobile {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
 
-        > span {
-          font-size: 18px;
-          font-weight: 500;
-          margin-bottom: 10px;
+        .logo-mobile {
+          h1 {
+            margin: 0;
+            font-family: "Satisfy", cursive;
+            font-size: 20px;
+            font-weight: normal;
+          }
         }
 
-        .anticon-menu-fold {
-          position: absolute;
-          right: 15px;
-          top: 15px;
-          font-size: 20px;
-          cursor: pointer;
-          transition: color 0.3s;
+        .mobile-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
 
-          &:hover {
-            color: #1890ff;
+          .mobile-user-info {
+            display: flex;
+            align-items: center;
+
+            .mobile-user-name {
+              font-size: 14px;
+              font-weight: 500;
+              color: #333;
+              max-width: 100px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+
+          .anticon-menu-fold {
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+            color: #333;
+
+            &:hover {
+              color: #1890ff;
+            }
           }
         }
       }
@@ -312,26 +341,78 @@ body.ant-modal-open {
 }
 
 /* Drawer styles */
-.ant-drawer {
+.mobile-drawer {
+  .drawer-title {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .drawer-user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 8px;
+
+      span {
+        font-weight: 500;
+        font-size: 15px;
+        color: #333;
+      }
+    }
+  }
+
+  .drawer-login-section {
+    padding: 20px 0;
+
+    p {
+      margin-bottom: 20px;
+      color: #666;
+      text-align: center;
+    }
+  }
+
   .ant-menu {
     border-right: none;
 
     .ant-menu-item {
       display: flex;
       align-items: center;
+      height: 48px;
+      line-height: 48px;
+      margin: 4px 0;
+      border-radius: 6px;
+      padding: 0 16px !important;
 
       .anticon {
-        font-size: 16px;
-        margin-right: 10px;
+        font-size: 18px;
+        margin-right: 12px;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+
+      label {
+        cursor: pointer;
+        width: 100%;
+        margin: 0;
       }
 
       &-selected {
         color: #1890ff;
         background-color: #e6f7ff;
+        font-weight: 500;
       }
 
       &:hover {
         color: #40a9ff;
+        background-color: #f5f5f5;
       }
     }
   }

@@ -9,22 +9,22 @@ const SimpleBookCard = ({ book }: { book: IBookSearch }) => {
   const defaultImage = "https://placehold.co/300x400?text=No+Image";
 
   return (
-    <Link to={`/book/${book.id}`} style={{ textDecoration: "none" }}>
+    <Link to={`/book/${book.id}`} style={{ textDecoration: "none", display: "block", width: "100%" }}>
       <Card
         hoverable
         cover={
           <img
             alt={book.name}
             src={book.image || defaultImage}
-            style={{ height: 220, objectFit: "cover" }}
+            style={{ height: 220, objectFit: "cover", width: "100%" }}
           />
         }
-        style={{ width: 180, margin: "0 auto" }}
+        style={{ width: "100%", maxWidth: 180, margin: "0 auto" }}
         bodyStyle={{ padding: 12 }}
       >
         <Meta
           title={
-            <Text ellipsis style={{ width: 150 }}>
+            <Text ellipsis style={{ width: "100%" }}>
               {book.name}
             </Text>
           }

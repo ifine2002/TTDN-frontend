@@ -203,7 +203,7 @@ const BookList: React.FC<IProps> = (props) => {
   return (
     <div>
       <Row justify="center">
-        <Col xs={24} sm={22} md={20} lg={16} xl={14}>
+        <Col xs={24} sm={22} md={20} lg={16} xl={20} xxl={18}>
           {books?.map((book) => (
             <BookCard key={book.bookId} book={book} />
           ))}

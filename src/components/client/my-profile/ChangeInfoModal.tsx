@@ -304,7 +304,7 @@ const ChangeInfoModal = ({
                 }}
                 rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
                 placeholder="Nhập mật khẩu cũ"
-                width={420}
+                width={400}
               />
               <ProFormText.Password
                 name="newPassword"
@@ -314,7 +314,7 @@ const ChangeInfoModal = ({
                 }}
                 rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
                 placeholder="Nhập mật khẩu mới"
-                width={420}
+                width={400}
               />
               <ProFormText.Password
                 name="confirmPassword"
@@ -336,7 +336,7 @@ const ChangeInfoModal = ({
                   }),
                 ]}
                 placeholder="Nhập lại mật khẩu mới"
-                width={420}
+                width={400}
               />
             </div>
             <div className="flex justify-center mt-4">

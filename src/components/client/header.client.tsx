@@ -306,24 +306,80 @@ const Header = () => {
             </div>
           ) : (
             <div className="header-mobile">
-              <span>Bookspace</span>
-              <MenuFoldOutlined onClick={() => setOpenMobileMenu(true)} />
+              <div className="logo-mobile">
+                <h1>
+                  <Link to="/">Bookspace</Link>
+                </h1>
+              </div>
+              <div className="mobile-actions">
+                {isAuthenticated && (
+                  <div className="mobile-user-info">
+                    <Avatar
+                      src={user?.image}
+                      size={32}
+                      style={{ border: "none", marginRight: "8px" }}
+                    >
+                      {user?.fullName?.substring(0, 2)?.toUpperCase()}
+                    </Avatar>
+                    <span className="mobile-user-name">
+                      {user?.fullName}
+                    </span>
+                  </div>
+                )}
+                <MenuFoldOutlined onClick={() => setOpenMobileMenu(true)} />
+              </div>
             </div>
           )}
         </div>
       </div>
       <Drawer
-        title="Chức năng"
+        title={
+          <div className="drawer-title">
+            <span>Menu</span>
+            {isAuthenticated && (
+              <div className="drawer-user-info">
+                <Avatar
+                  src={user?.image}
+                  size={40}
+                  style={{ border: "none" }}
+                >
+                  {user?.fullName?.substring(0, 2)?.toUpperCase()}
+                </Avatar>
+                <span>{user?.fullName}</span>
+              </div>
+            )}
+          </div>
+        }
         placement="right"
         onClose={() => setOpenMobileMenu(false)}
         open={openMobileMenu}
+        className="mobile-drawer"
       >
-        <Menu
-          onClick={handleMenuClick}
-          selectedKeys={[current]}
-          mode="vertical"
-          items={dropdownItems}
-        />
+        {isAuthenticated ? (
+          <Menu
+            onClick={(e) => {
+              handleMenuClick(e);
+              setOpenMobileMenu(false);
+            }}
+            selectedKeys={[current]}
+            mode="vertical"
+            items={dropdownItems}
+          />
+        ) : (
+          <div className="drawer-login-section">
+            <p>Vui lòng đăng nhập để sử dụng các chức năng</p>
+            <Button
+              type="primary"
+              block
+              onClick={() => {
+                navigate("/login");
+                setOpenMobileMenu(false);
+              }}
+            >
+              Đăng Nhập
+            </Button>
+          </div>
+        )}
       </Drawer>
     </>
   );

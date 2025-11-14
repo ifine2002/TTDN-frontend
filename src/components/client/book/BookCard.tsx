@@ -309,15 +309,16 @@ const BookCard = ({ book: initialBook }: IProps) => {
 
   return (
     <>
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center w-full px-2 sm:px-4">
         <Card
-          className="mb-7 shadow-md"
+          className="mb-7 shadow-md w-full max-w-full"
           actions={[
             <Tooltip key="rating-tooltip" title="Đánh giá">
               <Button
                 type="text"
                 icon={<MessageOutlined />}
                 onClick={openBookDetailModal}
+                className="text-xs sm:text-sm"
               >
                 {book.stars?.ratingCount || 0}
               </Button>
@@ -326,12 +327,14 @@ const BookCard = ({ book: initialBook }: IProps) => {
         >
           <div className="flex items-center mb-4">
             <Avatar src={book?.user?.image} icon={<UserOutlined />} size={40} />
-            <div className="ml-3">
+            <div className="ml-2 sm:ml-3 flex-1 min-w-0">
               <Link
                 to={`/profile/${book?.user?.id}`}
-                className="hover:underline"
+                className="hover:underline block truncate"
               >
-                <Text strong>{book?.user?.fullName}</Text>
+                <Text strong className="text-sm sm:text-base">
+                  {book?.user?.fullName}
+                </Text>
               </Link>
               <div>
                 <Text type="secondary" className="text-xs">
@@ -343,7 +346,10 @@ const BookCard = ({ book: initialBook }: IProps) => {
           </div>
 
           <Link to={`/book/${book.bookId}`} className="hover:underline">
-            <Title level={4} className="mb-2">
+            <Title
+              level={4}
+              className="mb-2 text-base sm:text-lg md:text-xl break-words"
+            >
               {book.name}
             </Title>
           </Link>
@@ -354,21 +360,20 @@ const BookCard = ({ book: initialBook }: IProps) => {
               expandable: true,
               symbol: "Xem thêm",
             }}
-            className="text-gray-700 mb-4"
+            className="text-gray-700 mb-4 text-sm sm:text-base"
           >
             {book.description || "Không có mô tả cho sách này."}
           </Paragraph>
 
-          <div className="flex gap-4 mt-5">
-            <div>
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 mt-5">
+            <div className="flex-shrink-0 flex flex-col items-center md:items-start">
               <img
                 alt={book.name}
                 src={book.bookImage || defaultImage}
-                className="object-cover rounded-lg"
-                style={{ height: 300, width: 225 }}
+                className="object-cover rounded-lg w-full max-w-[180px] sm:max-w-[200px] md:max-w-[225px] h-auto aspect-[3/4]"
                 loading="lazy"
               />
-              <div className="book-actions flex gap-2 mt-2">
+              <div className="book-actions flex flex-col sm:flex-row gap-2 mt-3 w-full sm:w-auto">
                 <Button
                   type="primary"
                   size="middle"
@@ -376,6 +381,7 @@ const BookCard = ({ book: initialBook }: IProps) => {
                   href={book.bookSaleLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="w-full sm:w-auto"
                 >
                   Tìm mua
                 </Button>
@@ -383,58 +389,75 @@ const BookCard = ({ book: initialBook }: IProps) => {
                   size="middle"
                   icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
                   onClick={toggleFavorite}
-                  className={
+                  className={`w-full sm:w-auto ${
                     isFavorite ? "favorite-button active" : "favorite-button"
-                  }
+                  }`}
                 >
                   Yêu thích
                 </Button>
               </div>
             </div>
 
-            <Space direction="vertical" size="small" className="w-full">
-              <div className="">
-                <Text type="secondary" className="flex items-center">
-                  <UserOutlined className="mr-1" /> Tác giả: {book.author}
+            <Space
+              direction="vertical"
+              size="small"
+              className="w-full flex-1 min-w-0"
+            >
+              <div className="space-y-2 sm:space-y-3">
+                <Text
+                  type="secondary"
+                  className="flex items-center text-xs sm:text-sm break-words"
+                >
+                  <UserOutlined className="mr-1 flex-shrink-0" /> Tác giả:{" "}
+                  {book.author}
                 </Text>
 
-                <Text type="secondary" className="flex items-center mt-4">
-                  <BookOutlined className="mr-1" /> {book.bookFormat}
+                <Text
+                  type="secondary"
+                  className="flex items-center text-xs sm:text-sm break-words"
+                >
+                  <BookOutlined className="mr-1 flex-shrink-0" /> {book.bookFormat}
                 </Text>
 
-                <Text className="flex items-center mt-4">
+                <Text className="flex items-center text-xs sm:text-sm break-words">
                   Ngôn ngữ: {book.language}
                 </Text>
 
-                <Text className="flex items-center mt-4">
+                <Text className="flex items-center text-xs sm:text-sm break-words">
                   Ngày xuất bản: {book.publishedDate}
                 </Text>
               </div>
 
               {book.categories && book.categories.length > 0 && (
                 <div className="mt-3">
-                  <Text className="mr-2">Thể loại:</Text>
-                  {book.categories.map((category) => (
-                    <Tag key={category.id} color="blue" className="mb-1">
-                      {category.name}
-                    </Tag>
-                  ))}
+                  <Text className="mr-2 text-xs sm:text-sm">Thể loại:</Text>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {book.categories.map((category) => (
+                      <Tag key={category.id} color="blue" className="mb-1 text-xs">
+                        {category.name}
+                      </Tag>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {book.stars && (
                 <div
-                  className="flex items-center mt-2 cursor-pointer"
+                  className="flex flex-wrap items-center mt-2 cursor-pointer gap-1"
                   onClick={openBookDetailModal}
                 >
-                  <Text className="mr-2">Đánh giá:</Text>
+                  <Text className="mr-2 text-xs sm:text-sm whitespace-nowrap">
+                    Đánh giá:
+                  </Text>
                   <Rate
                     allowHalf
                     disabled
                     value={book.stars.averageRating || 0}
-                    className="text-sm"
+                    className="text-xs sm:text-sm"
                   />
-                  <Text className="ml-2">({book.stars?.ratingCount || 0})</Text>
+                  <Text className="ml-2 text-xs sm:text-sm whitespace-nowrap">
+                    ({book.stars?.ratingCount || 0})
+                  </Text>
                 </div>
               )}
             </Space>

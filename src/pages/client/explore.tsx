@@ -7,6 +7,7 @@ import { callGetExploreBooks, callFetchCategoriesUpload } from "api/services";
 import { Subject } from "rxjs";
 import { debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
 import { IBookSearch } from "types/backend";
+import "styles/explore.scss";
 
 interface IBookPagination {
   current: number;
@@ -38,7 +39,7 @@ const ExplorePage = () => {
   const [inputValue, setInputValue] = useState("");
   const [bookPagination, setBookPagination] = useState<IBookPagination>({
     current: 0,
-    pageSize: 5,
+    pageSize: 6,
     total: 0,
   });
   const [filters, setFilters] = useState<IFilters>({
@@ -178,45 +179,58 @@ const ExplorePage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 justify-center items-center">
-      <div className="text-2xl font-bold">Khám phá sách</div>
-      <div className="flex gap-4 mb-4">
+    <div className="explore-page">
+      <div className="explore-page__title">Khám phá sách</div>
+      <div className="explore-page__filters">
         <Input
           placeholder="Tìm theo tác giả"
           value={inputValue}
           onChange={handleAuthorChange}
-          style={{ width: 200 }}
+          className="explore-page__filter-input"
         />
         <Select
           placeholder="Chọn thể loại"
           value={filters.category}
           onChange={handleCategoryChange}
-          style={{ width: 200 }}
+          className="explore-page__filter-select"
           allowClear
           options={categories}
         />
       </div>
-      <div className="flex gap-6 min-w-max">
+      <div className="explore-page__content">
         {loading ? (
-          <Spin />
+          <div className="explore-page__loading">
+            <Spin size="large" />
+          </div>
         ) : bookData.length === 0 ? (
-          <div className="py-20">
+          <div className="explore-page__empty">
             <Empty description="Không tìm thấy sách nào" />
           </div>
         ) : (
-          bookData.map((book, index) => (
-            <SimpleBookCard key={`${book.id}-${index}`} book={book} />
-          ))
+          <div className="explore-page__book-grid">
+            {bookData.map((book, index) => (
+              <div
+                key={`${book.id}-${index}`}
+                className="explore-page__book-item"
+              >
+                <SimpleBookCard book={book} />
+              </div>
+            ))}
+          </div>
         )}
       </div>
-      <div className="flex justify-center mt-5">
-        <Pagination
-          current={bookPagination.current + 1}
-          pageSize={bookPagination.pageSize}
-          total={bookPagination.total}
-          onChange={handleBookPageChange}
-        />
-      </div>
+      {bookData.length > 0 && (
+        <div className="explore-page__pagination">
+          <Pagination
+            current={bookPagination.current + 1}
+            pageSize={bookPagination.pageSize}
+            total={bookPagination.total}
+            onChange={handleBookPageChange}
+            showSizeChanger={false}
+            responsive
+          />
+        </div>
+      )}
     </div>
   );
 };

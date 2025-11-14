@@ -86,7 +86,7 @@ const PermissionPage = () => {
       hideInSearch: true,
     },
     {
-      title: "Tên quyền hạn",
+      title: "Tên",
       dataIndex: "name",
       sorter: true,
     },
