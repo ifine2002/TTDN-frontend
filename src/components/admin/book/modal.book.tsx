@@ -178,7 +178,7 @@ const ModalBook = (props: IProps) => {
       }
       const res = await callUpdateBook(book, dataInit.id);
       if (res && res.data) {
-        message.success("Cập nhật book thành công");
+        message.success("Cập nhật sách thành công");
         handleReset();
         reloadTable();
       } else {
@@ -208,7 +208,7 @@ const ModalBook = (props: IProps) => {
 
       const res = await callCreateBook(book);
       if (res && res.data) {
-        message.success("Thêm mới book thành công");
+        message.success("Thêm mới sách thành công");
         handleReset();
         reloadTable();
       } else {
@@ -242,7 +242,7 @@ const ModalBook = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{dataInit?.id ? "Cập nhật Book" : "Tạo mới Book"}</>}
+        title={<>{dataInit?.id ? "Cập nhật sách" : "Tạo mới sách"}</>}
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -272,7 +272,7 @@ const ModalBook = (props: IProps) => {
         <Row gutter={16}>
           <Col lg={8} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Name"
+              label="Tên sách"
               name="name"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập tên sách"
@@ -280,7 +280,7 @@ const ModalBook = (props: IProps) => {
           </Col>
           <Col lg={16} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Description"
+              label="Mô tả"
               name="description"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập mô tả"
@@ -289,22 +289,22 @@ const ModalBook = (props: IProps) => {
           <Col lg={6} md={6} sm={24} xs={24}>
             <ProFormText
               name="bookFormat"
-              label="Format"
+              label="Định dạng"
               placeholder="Nhập số trang"
               rules={[{ required: true, message: "Vui lòng không bỏ trống!" }]}
             />
           </Col>
           <Col lg={12} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Sale Link"
+              label="Liên kết mua sách"
               name="bookSaleLink"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
-              placeholder="Nhập sale link"
+              placeholder="Nhập địa chỉ bán sách"
             />
           </Col>
           <Col lg={6} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Language"
+              label="Ngôn ngữ"
               name="language"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập ngôn ngữ"
@@ -312,7 +312,7 @@ const ModalBook = (props: IProps) => {
           </Col>
           <Col lg={8} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Author"
+              label="Tác giả"
               name="author"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập tên tác giả"
@@ -365,7 +365,7 @@ const ModalBook = (props: IProps) => {
           </Col>
           <Col span={12}>
             <Form.Item
-              label={"Category"}
+              label={"Thể loại"}
               name="categories"
               rules={[
                 {
@@ -391,7 +391,7 @@ const ModalBook = (props: IProps) => {
           </Col>
           <Col lg={6} md={6} sm={24} xs={24}>
             <ProFormDatePicker
-              label="Published Date"
+              label="Nghày xuất bản"
               name="publishedDate"
               placeholder="Chọn ngày xuất bản"
               fieldProps={{

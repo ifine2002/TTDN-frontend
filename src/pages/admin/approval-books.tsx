@@ -26,7 +26,7 @@ import {
   callGetApproveBooks,
 } from "api/services";
 import BookDetailModal from "components/admin/book/modal.book-detail";
-import { IBookAdmin, IPost } from "@/types/backend";
+import { IBookAdmin } from "@/types/backend";
 
 import { SortOrder } from "types/backend";
 
@@ -164,7 +164,7 @@ const ApprovalBooksPage = () => {
 
   const columns: ProColumns<IBookAdmin>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "bookId",
       width: 50,
       render: (text) => text,
@@ -172,14 +172,14 @@ const ApprovalBooksPage = () => {
       sorter: true,
     },
     {
-      title: "Book Image",
+      title: "Hình ảnh",
       dataIndex: "imageBook",
       width: 100,
       render: (image) => <Image width={80} src={image as string} alt="book" />,
       hideInSearch: true,
     },
     {
-      title: "Book Name",
+      title: "Tên sách",
       dataIndex: "bookName",
       sorter: true,
       render: (text, record) => (
@@ -189,7 +189,7 @@ const ApprovalBooksPage = () => {
       ),
     },
     {
-      title: "Poster",
+      title: "Người đăng",
       dataIndex: "fullName",
       render: (text, record) => (
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -208,13 +208,13 @@ const ApprovalBooksPage = () => {
       hideInSearch: true,
     },
     {
-      title: "User Id",
+      title: "ID người dùng",
       dataIndex: "userId",
       render: (text) => text,
       hideInSearch: true,
     },
     {
-      title: "Categories",
+      title: "Thể loại",
       dataIndex: "categories",
       render: (_, record) => {
         const categories = record.categories;
@@ -234,7 +234,7 @@ const ApprovalBooksPage = () => {
       },
     },
     {
-      title: "CreatedBy",
+      title: "Người tạo",
       dataIndex: "createdBy",
       fieldProps: {
         placeholder: "Tìm kiếm theo người tạo",
@@ -242,7 +242,7 @@ const ApprovalBooksPage = () => {
       sorter: true,
     },
     {
-      title: "Created At",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 180,
       sorter: true,
@@ -253,19 +253,19 @@ const ApprovalBooksPage = () => {
       hideInSearch: true,
     },
     {
-      title: "Action",
+      title: "Hành động",
       hideInSearch: true,
       width: 150,
       render: (_, record) => (
         <Space>
-          <Tooltip title="Detail">
+          <Tooltip title="Chi tiết">
             <Button
               icon={<EyeOutlined />}
               onClick={() => handleViewDetail(record)}
               type="default"
             />
           </Tooltip>
-          <Tooltip title="Approval">
+          <Tooltip title="Chấp thuận">
             <Button
               icon={<CheckCircleOutlined />}
               onClick={() => handleApproveBook(record.bookId)}
@@ -273,7 +273,7 @@ const ApprovalBooksPage = () => {
               style={{ backgroundColor: "#52c41a" }}
             />
           </Tooltip>
-          <Tooltip title="Reject">
+          <Tooltip title="Từ chối">
             <Button
               icon={<CloseCircleOutlined />}
               onClick={() => handleRejectBook(record.bookId)}
@@ -335,7 +335,7 @@ const ApprovalBooksPage = () => {
         actionRef={actionRef}
         headerTitle={
           <div className="flex items-center">
-            <span>Pending list</span>
+            <span>Danh sách cuốn sách chờ duyệt</span>
             <Badge
               count={data.total}
               showZero

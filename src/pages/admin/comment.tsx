@@ -41,7 +41,7 @@ const CommentPage = () => {
     if (id) {
       const res = await callDeleteComment(id);
       if (res && res.status === 200) {
-        message.success("Xóa Comment thành công");
+        message.success("Xóa bình luận thành công");
         reloadTable();
       } else {
         notification.error({
@@ -58,7 +58,7 @@ const CommentPage = () => {
 
   const columns: ProColumns<IComment>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "id",
       width: 50,
       sorter: true,
@@ -67,7 +67,7 @@ const CommentPage = () => {
       },
     },
     {
-      title: "Comment",
+      title: "Nội dung",
       dataIndex: "comment",
     },
     {
@@ -95,17 +95,17 @@ const CommentPage = () => {
       },
     },
     {
-      title: "User Id",
+      title: "User ID",
       dataIndex: "userId",
       sorter: true,
     },
     {
-      title: "Book Id",
+      title: "Book ID",
       dataIndex: "bookId",
       sorter: true,
     },
     {
-      title: "CreatedAt",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
@@ -121,7 +121,7 @@ const CommentPage = () => {
       hideInSearch: true,
     },
     {
-      title: "UpdatedAt",
+      title: "Thời gian cập nhật",
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
@@ -137,7 +137,7 @@ const CommentPage = () => {
       hideInSearch: true,
     },
     {
-      title: "Actions",
+      title: "Hành động",
       hideInSearch: true,
       width: 50,
       render: (_value, entity, _index, _action) => (
@@ -155,8 +155,8 @@ const CommentPage = () => {
           />
           <Popconfirm
             placement="leftTop"
-            title={"Xác nhận xóa comment"}
-            description={"Bạn có chắc chắn muốn xóa comment này ?"}
+            title={"Xác nhận xóa bình luận"}
+            description={"Bạn có chắc chắn muốn xóa bình luận này ?"}
             onConfirm={() => handleDeleteComment(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
@@ -226,7 +226,7 @@ const CommentPage = () => {
     <div>
       <DataTable
         actionRef={actionRef}
-        headerTitle="Danh sách Rating"
+        headerTitle="Danh sách bình luận"
         rowKey="id"
         loading={isFetching}
         columns={columns}
@@ -249,7 +249,7 @@ const CommentPage = () => {
             return (
               <div>
                 {" "}
-                {range[0]}-{range[1]} trên {total} rows
+                {range[0]}-{range[1]} trên {total} mục
               </div>
             );
           },

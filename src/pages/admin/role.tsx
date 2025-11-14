@@ -62,7 +62,7 @@ const RolePage = () => {
     if (id) {
       const res = await callDeleteRole(id);
       if (res && res.status === 200) {
-        message.success("Xóa Role thành công");
+        message.success("Xóa vai trò thành công");
         reloadTable();
       } else {
         notification.error({
@@ -79,7 +79,7 @@ const RolePage = () => {
 
   const columns: ProColumns<IRole>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "id",
       width: 50,
       render: (text, record, index, action) => {
@@ -89,12 +89,12 @@ const RolePage = () => {
       sorter: true,
     },
     {
-      title: "Name",
+      title: "Tên vai trò",
       dataIndex: "name",
       sorter: true,
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "isActive",
       render(dom, entity, index, action, schema) {
         return (
@@ -108,7 +108,7 @@ const RolePage = () => {
       hideInSearch: true,
     },
     {
-      title: "CreatedAt",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
@@ -124,7 +124,7 @@ const RolePage = () => {
       hideInSearch: true,
     },
     {
-      title: "UpdatedAt",
+      title: "Thời gian cập nhật",
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
@@ -140,7 +140,7 @@ const RolePage = () => {
       hideInSearch: true,
     },
     {
-      title: "Actions",
+      title: "Hành động",
       hideInSearch: true,
       width: 50,
       render: (_value, entity, _index, _action) => (
@@ -158,8 +158,8 @@ const RolePage = () => {
           />
           <Popconfirm
             placement="leftTop"
-            title={"Xác nhận xóa role"}
-            description={"Bạn có chắc chắn muốn xóa role này ?"}
+            title={"Xác nhận xóa vai trò"}
+            description={"Bạn có chắc chắn muốn xóa vai trò này ?"}
             onConfirm={() => handleDeleteRole(entity.id!)}
             okText="Xác nhận"
             cancelText="Hủy"
@@ -221,7 +221,7 @@ const RolePage = () => {
     <div>
       <DataTable
         actionRef={actionRef}
-        headerTitle="Danh sách Roles (Vai Trò)"
+        headerTitle="Danh sách vai trò"
         rowKey="id"
         loading={isFetching}
         columns={columns}
@@ -244,7 +244,7 @@ const RolePage = () => {
             return (
               <div>
                 {" "}
-                {range[0]}-{range[1]} trên {total} rows
+                {range[0]}-{range[1]} trên {total} mục
               </div>
             );
           },

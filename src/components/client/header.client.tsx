@@ -168,7 +168,7 @@ const Header = () => {
     setPopoverVisible(false);
   };
 
-  const goToBookDetail = (bookId: string) => {
+  const goToBookDetail = (bookId: number) => {
     if (bookId) {
       navigate(`/book/${bookId}`);
       setPopoverVisible(false);
@@ -291,7 +291,7 @@ const Header = () => {
                 ) : (
                   <Dropdown menu={{ items: dropdownItems }} trigger={["click"]}>
                     <Space style={{ cursor: "pointer" }}>
-                      <span>Welcome {user?.fullName}</span>
+                      <span>Xin chào, {user?.fullName}</span>
                       <Avatar
                         src={user?.image}
                         size={40}
@@ -306,7 +306,7 @@ const Header = () => {
             </div>
           ) : (
             <div className="header-mobile">
-              <span>Your APP</span>
+              <span>Bookspace</span>
               <MenuFoldOutlined onClick={() => setOpenMobileMenu(true)} />
             </div>
           )}

@@ -32,7 +32,7 @@ const ModalComment = (props: IProps) => {
 
       const res = await callUpdateComment(commentData, dataInit.id);
       if (res.data) {
-        message.success("Cập nhật comment thành công");
+        message.success("Cập nhật bình luận thành công");
         handleReset();
         reloadTable();
       } else {
@@ -52,7 +52,7 @@ const ModalComment = (props: IProps) => {
 
       const res = await callCreateComment(commentData);
       if (res.data) {
-        message.success("Thêm mới comment thành công");
+        message.success("Thêm mới bình luận thành công");
         handleReset();
         reloadTable();
       } else {
@@ -73,7 +73,7 @@ const ModalComment = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{dataInit?.id ? "Cập nhật Comment" : "Tạo mới Comment"}</>}
+        title={<>{dataInit?.id ? "Cập nhật bình luận" : "Tạo mới bình luận"}</>}
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -104,10 +104,10 @@ const ModalComment = (props: IProps) => {
         <Row gutter={16}>
           <Col span={24}>
             <ProFormText
-              label="Comment"
+              label="Nội dung"
               name="comment"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
-              placeholder="Nhập comment"
+              placeholder="Nhập nội dung"
             />
           </Col>
           <Col span={24}>
@@ -124,7 +124,7 @@ const ModalComment = (props: IProps) => {
           </Col>
           <Col span={12}>
             <ProFormText
-              label="User Id"
+              label="User ID"
               name="userId"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập user id"
@@ -133,7 +133,7 @@ const ModalComment = (props: IProps) => {
           </Col>
           <Col span={12}>
             <ProFormText
-              label="Book Id"
+              label="Book ID"
               name="bookId"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập book id"

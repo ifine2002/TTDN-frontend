@@ -47,7 +47,7 @@ const BookDetail = () => {
     async (showLoading = true) => {
       try {
         if (showLoading) setLoading(true);
-        const response = await callGetBookDetailById(id!);
+        const response = await callGetBookDetailById(+id!);
         if (response?.data) {
           setBook(response.data);
           if (response.data.reviews) setListReview(response.data.reviews);
@@ -291,7 +291,7 @@ const BookDetail = () => {
               </Col>
               <Col span={8}>
                 <Text strong>Ngày xuất bản</Text>
-                <div>{book.publishedDate.toString()}</div>
+                <div>{book.publishedDate!.toString()}</div>
               </Col>
             </Row>
           </div>

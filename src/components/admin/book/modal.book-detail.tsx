@@ -20,12 +20,12 @@ const BookDetailModal = (props: IProps) => {
 
   return (
     <Modal
-      title="Book Detail"
+      title="Chi Tiết Thông Tin Sách"
       open={openViewDetail}
       onCancel={() => setOpenViewDetail(false)}
       footer={[
         <Button key="back" onClick={() => setOpenViewDetail(false)}>
-          Close
+          Đóng
         </Button>,
         <Button
           key="approve"
@@ -38,7 +38,7 @@ const BookDetailModal = (props: IProps) => {
             }
           }}
         >
-          Approval
+          Chấp thuận
         </Button>,
         <Button
           key="reject"
@@ -50,7 +50,7 @@ const BookDetailModal = (props: IProps) => {
             }
           }}
         >
-          Reject
+          Từ chối
         </Button>,
       ]}
       width={800}
@@ -68,21 +68,21 @@ const BookDetailModal = (props: IProps) => {
             </div>
             <div className="flex-1">
               <Descriptions title={bookDetail.bookName} column={1} bordered>
-                <Descriptions.Item label="Author">
+                <Descriptions.Item label="Tác giả">
                   {bookDetail.author || "Không có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Published Date">
+                <Descriptions.Item label="Ngày xuất bản">
                   {bookDetail.publishedDate
                     ? dayjs(bookDetail.publishedDate).format("DD/MM/YYYY")
                     : "Không có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Book Format">
+                <Descriptions.Item label="Định dạng">
                   {bookDetail.bookFormat || "Không có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Language">
+                <Descriptions.Item label="Ngôn ngữ">
                   {bookDetail.language || "Không có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Categories">
+                <Descriptions.Item label="Thể loại">
                   {bookDetail.categories && bookDetail.categories.length > 0
                     ? bookDetail.categories.map((cat) => (
                         <Tag key={cat.id} color="blue">
@@ -91,7 +91,7 @@ const BookDetailModal = (props: IProps) => {
                       ))
                     : "No categories"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Book Sale Link">
+                <Descriptions.Item label="Liên kết mua sách">
                   {bookDetail.bookSaleLink ? (
                     <a
                       href={bookDetail.bookSaleLink}
@@ -101,7 +101,7 @@ const BookDetailModal = (props: IProps) => {
                       {bookDetail.bookSaleLink}
                     </a>
                   ) : (
-                    "No book sale link"
+                    "Không có địa chỉ liên kết"
                   )}
                 </Descriptions.Item>
               </Descriptions>
@@ -109,14 +109,14 @@ const BookDetailModal = (props: IProps) => {
           </div>
 
           <div className="mt-4">
-            <h3 className="text-lg font-bold mb-2">Description:</h3>
+            <h3 className="text-lg font-bold mb-2">Mô tả:</h3>
             <div className="p-4 border rounded bg-gray-50">
-              {bookDetail.description || "No description"}
+              {bookDetail.description || "Không có mô tả"}
             </div>
           </div>
 
           <div className="mt-4">
-            <h3 className="text-lg font-bold mb-2">Information Poster:</h3>
+            <h3 className="text-lg font-bold mb-2">Thông tin người đăng:</h3>
             <div className="flex items-center gap-4">
               <Image
                 width={50}
@@ -131,7 +131,7 @@ const BookDetailModal = (props: IProps) => {
               <div>
                 <div className="font-bold">{bookDetail.fullName}</div>
                 <div className="text-gray-500">
-                  Posted at:{" "}
+                  Đăng tải lúc:{" "}
                   {dayjs(bookDetail.createdAt).format("DD/MM/YYYY HH:mm")}
                 </div>
               </div>

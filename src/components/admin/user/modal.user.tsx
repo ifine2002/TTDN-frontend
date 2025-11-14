@@ -167,7 +167,7 @@ const ModalUser = (props: IProps) => {
 
       const res = await callUpdateUser(user, dataInit.id);
       if (res && res.data) {
-        message.success("Cập nhật user thành công");
+        message.success("Cập nhật người dùng thành công");
         handleReset();
         reloadTable();
       } else {
@@ -198,7 +198,7 @@ const ModalUser = (props: IProps) => {
 
       const res = await callCreateUser(user);
       if (res && res.data) {
-        message.success("Thêm mới user thành công");
+        message.success("Thêm mới người dùng thành công");
         handleReset();
         reloadTable();
       } else {
@@ -248,7 +248,9 @@ const ModalUser = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{dataInit?.id ? "Cập nhật User" : "Tạo mới User"}</>}
+        title={
+          <>{dataInit?.id ? "Cập nhật người dùng" : "Tạo mới người dùng"}</>
+        }
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -292,7 +294,7 @@ const ModalUser = (props: IProps) => {
           <Col lg={12} md={12} sm={24} xs={24}>
             <ProFormText.Password
               disabled={dataInit?.id ? true : false}
-              label="Password"
+              label="Mật khẩu"
               name="password"
               rules={[
                 {
@@ -300,7 +302,7 @@ const ModalUser = (props: IProps) => {
                   message: "Vui lòng không bỏ trống",
                 },
               ]}
-              placeholder={dataInit?.id ? " " : "Nhập password"}
+              placeholder={dataInit?.id ? " " : "Nhập mật khẩu"}
             />
           </Col>
           <Col lg={6} md={6} sm={24} xs={24}>
@@ -313,10 +315,10 @@ const ModalUser = (props: IProps) => {
           </Col>
           <Col lg={6} md={6} sm={24} xs={24}>
             <ProFormText
-              label="Phone"
+              label="Số điện thoại"
               name="phone"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
-              placeholder="Nhập phone"
+              placeholder="Nhập số điện thoại"
             />
           </Col>
           <Col lg={6} md={6} sm={24} xs={24}>

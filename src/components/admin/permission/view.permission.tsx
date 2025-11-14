@@ -15,7 +15,7 @@ const ViewDetailPermission = (props: IProps) => {
   return (
     <>
       <Drawer
-        title="Thông Tin Permission"
+        title="Thông Tin Quyền Hạn"
         placement="right"
         onClose={() => {
           onClose(false);
@@ -26,26 +26,24 @@ const ViewDetailPermission = (props: IProps) => {
         maskClosable={false}
       >
         <Descriptions title="" bordered column={2} layout="vertical">
-          <Descriptions.Item label="Tên Permission">
+          <Descriptions.Item label="Tên quyền hạn">
             {dataInit?.name}
           </Descriptions.Item>
-          <Descriptions.Item label="API Path">
-            {dataInit?.apiPath}
-          </Descriptions.Item>
+          <Descriptions.Item label="API">{dataInit?.apiPath}</Descriptions.Item>
 
           <Descriptions.Item label="Method">
             {dataInit?.method}
           </Descriptions.Item>
-          <Descriptions.Item label="Thuộc Module">
+          <Descriptions.Item label="Module">
             {dataInit?.module}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Ngày tạo">
+          <Descriptions.Item label="Thời gian tạo">
             {dataInit && dataInit.createdAt
               ? dayjs(dataInit.createdAt).format("DD-MM-YYYY HH:mm:ss")
               : ""}
           </Descriptions.Item>
-          <Descriptions.Item label="Ngày sửa">
+          <Descriptions.Item label="Thời gian cập nhật">
             {dataInit && dataInit.updatedAt
               ? dayjs(dataInit.updatedAt).format("DD-MM-YYYY HH:mm:ss")
               : ""}

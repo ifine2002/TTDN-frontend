@@ -14,7 +14,7 @@ const ViewDetailUser = (props: IProps) => {
   return (
     <>
       <Drawer
-        title="Information User"
+        title="Thông Tin Chi Tiết Người Dùng"
         placement="right"
         onClose={() => {
           onClose(false);
@@ -35,7 +35,7 @@ const ViewDetailUser = (props: IProps) => {
           }}
           size="small"
         >
-          <Descriptions.Item label="Image">
+          <Descriptions.Item label="Hình ảnh">
             {userDetail?.image ? (
               <Image
                 src={userDetail.image as string}
@@ -55,49 +55,49 @@ const ViewDetailUser = (props: IProps) => {
           layout="vertical"
           size="small"
         >
-          <Descriptions.Item label="Id">{userDetail?.id}</Descriptions.Item>
-          <Descriptions.Item label="Full Name">
+          <Descriptions.Item label="ID">{userDetail?.id}</Descriptions.Item>
+          <Descriptions.Item label="Tên hiển thị">
             {userDetail?.fullName}
           </Descriptions.Item>
           <Descriptions.Item label="Email">
             {userDetail?.email}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Gender">
+          <Descriptions.Item label="Giới tính">
             {userDetail?.gender}
           </Descriptions.Item>
-          <Descriptions.Item label="Phone">
+          <Descriptions.Item label="Số điện thoại">
             {userDetail?.phone}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Role">
+          <Descriptions.Item label="Vai trò">
             {userDetail?.role?.name}
           </Descriptions.Item>
-          <Descriptions.Item label="Address">
+          <Descriptions.Item label="Địa chỉ">
             {userDetail?.address}
           </Descriptions.Item>
-          <Descriptions.Item label="Date Of Birth">
+          <Descriptions.Item label="Ngày sinh">
             {userDetail && userDetail.userDOB
               ? dayjs(userDetail.userDOB).format("DD-MM-YYYY")
               : ""}
           </Descriptions.Item>
-          <Descriptions.Item label="Status">
+          <Descriptions.Item label="Trạng thái">
             {userDetail?.status}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Total Follower">
+          <Descriptions.Item label="Tổng số follower">
             {userDetail?.follower}
           </Descriptions.Item>
-          <Descriptions.Item label="Total Following">
+          <Descriptions.Item label="Tổng số following">
             {userDetail?.following}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Created At">
+          <Descriptions.Item label="Thời gian tạo">
             {userDetail && userDetail.createdAt
               ? dayjs(userDetail.createdAt).format("DD-MM-YYYY HH:mm:ss")
               : ""}
           </Descriptions.Item>
-          <Descriptions.Item label="Updated At">
+          <Descriptions.Item label="Thời gian cập nhật">
             {userDetail && userDetail.updatedAt
               ? dayjs(userDetail.updatedAt).format("DD-MM-YYYY HH:mm:ss")
               : ""}

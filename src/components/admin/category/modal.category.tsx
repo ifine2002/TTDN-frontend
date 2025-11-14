@@ -165,7 +165,7 @@ const ModalCategory = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{dataInit?.id ? "Cập nhật Category" : "Tạo mới Category"}</>}
+        title={<>{dataInit?.id ? "Cập nhật thể loại" : "Tạo mới thể loại"}</>}
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -189,15 +189,15 @@ const ModalCategory = (props: IProps) => {
         <Row gutter={16}>
           <Col span={8}>
             <ProFormText
-              label="Tên Category"
+              label="Tên thể loại"
               name="name"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
-              placeholder="Nhập tên category"
+              placeholder="Nhập tên thể loại"
             />
           </Col>
           <Col span={16}>
             <ProFormText
-              label="Mô tả Category"
+              label="Mô tả"
               name="description"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập mô tả"

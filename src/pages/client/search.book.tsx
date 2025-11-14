@@ -220,12 +220,12 @@ const SearchPage = () => {
                               className="text-sm"
                             />
                             <span className="text-xs text-gray-500 ml-3">
-                              {book.averageRating || 0} avg rating —{" "}
-                              {book.ratingCount || 0} ratings
+                              {book.averageRating || 0} sao —{" "}
+                              {book.ratingCount || 0} đánh giá
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 mb-3">
-                            published {book.publishedDate}
+                            xuất bản {book.publishedDate}
                           </div>
                         </div>
                       </div>

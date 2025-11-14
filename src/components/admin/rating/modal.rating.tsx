@@ -30,7 +30,7 @@ const ModalRating = (props: IProps) => {
 
       const res = await callUpdateRating(rating, dataInit.id);
       if (res.data) {
-        message.success("Cập nhật rating thành công");
+        message.success("Cập nhật đánh giá thành công");
         handleReset();
         reloadTable();
       } else {
@@ -49,7 +49,7 @@ const ModalRating = (props: IProps) => {
 
       const res = await callCreateRating(rating);
       if (res.data) {
-        message.success("Thêm mới rating thành công");
+        message.success("Thêm mới đánh giá thành công");
         handleReset();
         reloadTable();
       } else {
@@ -70,7 +70,7 @@ const ModalRating = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{dataInit?.id ? "Cập nhật Rating" : "Tạo mới Rating"}</>}
+        title={<>{dataInit?.id ? "Cập nhật đánh giá" : "Tạo mới đánh giá"}</>}
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -94,7 +94,7 @@ const ModalRating = (props: IProps) => {
         <Row gutter={16}>
           <Col span={8}>
             <ProFormDigit
-              label="Stars"
+              label="Số sao"
               name="stars"
               rules={[
                 { required: true, message: "Vui lòng không bỏ trống" },
@@ -109,14 +109,14 @@ const ModalRating = (props: IProps) => {
                   message: "Giá trị không được lớn hơn 5",
                 },
               ]}
-              placeholder="Nhập stars (1-5)"
+              placeholder="Nhập số sao (1-5)"
               min={1}
               max={5}
             />
           </Col>
           <Col span={8}>
             <ProFormText
-              label="User Id"
+              label="User ID"
               name="userId"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập user id"
@@ -124,7 +124,7 @@ const ModalRating = (props: IProps) => {
           </Col>
           <Col span={8}>
             <ProFormText
-              label="Book Id"
+              label="Book ID"
               name="bookId"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
               placeholder="Nhập book id"

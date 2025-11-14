@@ -31,7 +31,6 @@ type Sorter = Partial<
 
 const FollowPage = () => {
   const actionRef = useRef<ActionType>();
-  const [openModal, setOpenModal] = useState(false);
   const isFetching = useAppSelector((state) => state.follow.follows.isFetching);
   const data = useAppSelector((state) => state.follow.follows.data);
 
@@ -58,7 +57,7 @@ const FollowPage = () => {
 
   const columns: ProColumns<IFollow>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "id",
       width: 50,
       sorter: true,
@@ -67,21 +66,21 @@ const FollowPage = () => {
       },
     },
     {
-      title: "Follower Id",
+      title: "Follower ID",
       dataIndex: "followerId",
       sorter: true,
     },
     {
-      title: "Following  Id",
+      title: "Following  ID",
       dataIndex: "followingId",
       sorter: true,
       fieldProps: {
-        placeholder: "Tìm kiếm theo Following Id",
+        placeholder: "Tìm kiếm theo Following ID",
         style: { marginLeft: 5 },
       },
     },
     {
-      title: "CreatedAt",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
@@ -97,13 +96,13 @@ const FollowPage = () => {
       hideInSearch: true,
     },
     {
-      title: "CreatedBy",
+      title: "Người tạo",
       dataIndex: "createdBy",
       sorter: true,
       hideInSearch: true,
     },
     {
-      title: "Actions",
+      title: "Hành động",
       hideInSearch: true,
       width: 50,
       render: (_value, entity, _index, _action) => (
@@ -204,21 +203,12 @@ const FollowPage = () => {
             return (
               <div>
                 {" "}
-                {range[0]}-{range[1]} trên {total} rows
+                {range[0]}-{range[1]} trên {total} mục
               </div>
             );
           },
         }}
         rowSelection={false}
-        toolBarRender={(_action, _rows) => [
-          <Button
-            icon={<PlusOutlined />}
-            type="primary"
-            onClick={() => setOpenModal(true)}
-          >
-            Thêm mới
-          </Button>,
-        ]}
       />
     </div>
   );

@@ -60,7 +60,7 @@ const BookPage = () => {
 
   const columns: ProColumns<IBook>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "id",
       width: 50,
       render: (text, record, index, action) => {
@@ -70,17 +70,17 @@ const BookPage = () => {
       sorter: true,
     },
     {
-      title: "Name",
+      title: "Tên Sách",
       dataIndex: "name",
       sorter: true,
     },
     {
-      title: "Description",
+      title: "Mô tả",
       dataIndex: "description",
     },
 
     {
-      title: "Category",
+      title: "Thể loại",
       dataIndex: "categories",
       render: (categories) => {
         if (
@@ -96,7 +96,7 @@ const BookPage = () => {
       },
     },
     {
-      title: "CreatedBy",
+      title: "Người tạo",
       dataIndex: "createdBy",
       fieldProps: {
         placeholder: "Tìm kiếm theo người tạo",
@@ -104,7 +104,7 @@ const BookPage = () => {
       sorter: true,
     },
     {
-      title: "CreatedAt",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
@@ -120,7 +120,7 @@ const BookPage = () => {
       hideInSearch: true,
     },
     {
-      title: "UpdatedAt",
+      title: "Thời gian cập nhật",
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
@@ -136,7 +136,7 @@ const BookPage = () => {
       hideInSearch: true,
     },
     {
-      title: "Actions",
+      title: "Hành động",
       hideInSearch: true,
       width: 50,
       render: (_value, entity) => (
@@ -156,7 +156,7 @@ const BookPage = () => {
           <Popconfirm
             placement="leftTop"
             title={"Xác nhận xóa book"}
-            description={"Bạn có chắc chắn muốn xóa book này ?"}
+            description={"Bạn có chắc chắn muốn xóa sách này ?"}
             onConfirm={(e) => {
               e?.stopPropagation();
               handleDeleteBook(entity?.id);
@@ -235,7 +235,7 @@ const BookPage = () => {
     <div>
       <DataTable
         actionRef={actionRef}
-        headerTitle="Danh sách Books"
+        headerTitle="Danh sách cuốn sách"
         rowKey="id"
         loading={isFetching}
         columns={columns}
@@ -259,7 +259,7 @@ const BookPage = () => {
             return (
               <div>
                 {" "}
-                {range[0]}-{range[1]} trên {total} rows
+                {range[0]}-{range[1]} trên {total} mục
               </div>
             );
           },

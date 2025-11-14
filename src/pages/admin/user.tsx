@@ -66,7 +66,7 @@ const UserPage = () => {
 
   const columns: ProColumns<IUser>[] = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "id",
       width: 80,
       render: (_, record) => <span>{record.id}</span>,
@@ -74,7 +74,7 @@ const UserPage = () => {
       sorter: true,
     },
     {
-      title: "Name",
+      title: "Tên hiển thị",
       dataIndex: "fullName",
       sorter: true,
     },
@@ -84,12 +84,12 @@ const UserPage = () => {
       sorter: true,
     },
     {
-      title: "Role",
+      title: "Vai trò",
       dataIndex: ["role", "name"],
       hideInSearch: true,
     },
     {
-      title: "CreatedAt",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       width: 200,
       sorter: true,
@@ -100,7 +100,7 @@ const UserPage = () => {
       hideInSearch: true,
     },
     {
-      title: "UpdatedAt",
+      title: "Thời gian cập nhật",
       dataIndex: "updatedAt",
       width: 200,
       sorter: true,
@@ -111,7 +111,7 @@ const UserPage = () => {
       hideInSearch: true,
     },
     {
-      title: "Actions",
+      title: "Hành động",
       valueType: "option",
       hideInSearch: true,
       width: 100,
@@ -198,7 +198,7 @@ const UserPage = () => {
     <div>
       <DataTable<IUser, QueryParams>
         actionRef={actionRef}
-        headerTitle="Danh sách Users"
+        headerTitle="Danh sách người dùng"
         rowKey="id"
         bordered
         loading={isFetching}
@@ -223,7 +223,7 @@ const UserPage = () => {
           showTotal: (total, range) => (
             <div>
               {" "}
-              {range[0]}-{range[1]} trên {total} rows
+              {range[0]}-{range[1]} trên {total} mục
             </div>
           ),
         }}

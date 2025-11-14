@@ -4,7 +4,6 @@ import {
   ExceptionOutlined,
   ApiOutlined,
   UserOutlined,
-  BankOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   BugOutlined,
@@ -13,6 +12,7 @@ import {
   LikeOutlined,
   CommentOutlined,
   AuditOutlined,
+  AccountBookOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -208,14 +208,14 @@ const LayoutAdmin = () => {
 
       const full = [
         {
-          label: <Link to="/admin">Dashboard</Link>,
+          label: <Link to="/admin">Thống kê</Link>,
           key: "/admin",
           icon: <AppstoreOutlined />,
         },
         ...(viewRating || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/rating">Rating</Link>,
+                label: <Link to="/admin/rating">Đánh giá</Link>,
                 key: "/admin/rating",
                 icon: <LikeOutlined />,
               },
@@ -225,7 +225,7 @@ const LayoutAdmin = () => {
         ...(viewComment || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/comment">Comment</Link>,
+                label: <Link to="/admin/comment">Bình luận</Link>,
                 key: "/admin/comment",
                 icon: <CommentOutlined />,
               },
@@ -235,7 +235,7 @@ const LayoutAdmin = () => {
         ...(viewPermission || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/permission">Permission</Link>,
+                label: <Link to="/admin/permission">Quyền hạn</Link>,
                 key: "/admin/permission",
                 icon: <ApiOutlined />,
               },
@@ -245,9 +245,9 @@ const LayoutAdmin = () => {
         ...(viewCategory || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/category">Category</Link>,
+                label: <Link to="/admin/category">Thể loại</Link>,
                 key: "/admin/category",
-                icon: <BookOutlined />,
+                icon: <AccountBookOutlined />,
               },
             ]
           : []),
@@ -255,7 +255,7 @@ const LayoutAdmin = () => {
         ...(viewRole || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/role">Role</Link>,
+                label: <Link to="/admin/role">Vai trò</Link>,
                 key: "/admin/role",
                 icon: <ExceptionOutlined />,
               },
@@ -265,7 +265,7 @@ const LayoutAdmin = () => {
         ...(viewUser || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/user">User</Link>,
+                label: <Link to="/admin/user">Người dùng</Link>,
                 key: "/admin/user",
                 icon: <UserOutlined />,
               },
@@ -275,7 +275,7 @@ const LayoutAdmin = () => {
         ...(viewFollow || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/follow">Follow</Link>,
+                label: <Link to="/admin/follow">Theo dõi</Link>,
                 key: "/admin/follow",
                 icon: <UserAddOutlined />,
               },
@@ -285,9 +285,9 @@ const LayoutAdmin = () => {
         ...(viewBook || ACL_ENABLE === "false"
           ? [
               {
-                label: <Link to="/admin/book">Book</Link>,
+                label: <Link to="/admin/book">Sách</Link>,
                 key: "/admin/book",
-                icon: <BankOutlined />,
+                icon: <BookOutlined />,
               },
             ]
           : []),
@@ -298,7 +298,7 @@ const LayoutAdmin = () => {
                 label: (
                   <Link to="/admin/approval-books">
                     <Space>
-                      Approval Books
+                      Duyệt sách
                       {pendingBooks > 0 && (
                         <Badge
                           count={pendingBooks}
@@ -421,7 +421,7 @@ const LayoutAdmin = () => {
 
                 <Dropdown menu={{ items: itemsDropdown }} trigger={["click"]}>
                   <Space style={{ cursor: "pointer" }}>
-                    Welcome {user?.fullName || "User"}
+                    Xin chào, {user?.fullName || "User"}
                     <Avatar> {user?.fullName?.charAt(0) || "U"} </Avatar>
                   </Space>
                 </Dropdown>

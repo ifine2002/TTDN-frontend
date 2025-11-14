@@ -60,7 +60,7 @@ const ModalRole = (props: IProps) => {
       };
       const res = await callUpdateRole(role, singleRole.id);
       if (res.data) {
-        message.success("Cập nhật role thành công");
+        message.success("Cập nhật vai trò thành công");
         handleReset();
         reloadTable();
       } else {
@@ -79,7 +79,7 @@ const ModalRole = (props: IProps) => {
       };
       const res = await callCreateRole(role);
       if (res.data) {
-        message.success("Thêm mới role thành công");
+        message.success("Thêm mới vai trò thành công");
         handleReset();
         reloadTable();
       } else {
@@ -100,7 +100,7 @@ const ModalRole = (props: IProps) => {
   return (
     <>
       <ModalForm
-        title={<>{singleRole?.id ? "Cập nhật Role" : "Tạo mới Role"}</>}
+        title={<>{singleRole?.id ? "Cập nhật vai trò" : "Tạo mới vai trò"}</>}
         open={openModal}
         modalProps={{
           onCancel: () => {
@@ -131,10 +131,10 @@ const ModalRole = (props: IProps) => {
         <Row gutter={16}>
           <Col lg={12} md={12} sm={24} xs={24}>
             <ProFormText
-              label="Tên Role"
+              label="Tên vai trò"
               name="name"
               rules={[{ required: true, message: "Vui lòng không bỏ trống" }]}
-              placeholder="Nhập name"
+              placeholder="Nhập tên vai trò"
             />
           </Col>
           <Col lg={12} md={12} sm={24} xs={24}>
