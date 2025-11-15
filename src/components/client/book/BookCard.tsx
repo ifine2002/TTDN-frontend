@@ -326,11 +326,20 @@ const BookCard = ({ book: initialBook }: IProps) => {
           ]}
         >
           <div className="flex items-center mb-4">
-            <Avatar src={book?.user?.image} icon={<UserOutlined />} size={40} />
+            <Link
+              to={`/profile/${book?.user?.id}`}
+              className="hover:underline block truncate"
+            >
+              <Avatar
+                src={book?.user?.image}
+                icon={<UserOutlined />}
+                size={40}
+              />
+            </Link>
             <div className="ml-2 sm:ml-3 flex-1 min-w-0">
               <Link
                 to={`/profile/${book?.user?.id}`}
-                className="hover:underline block truncate"
+                className="block truncate"
               >
                 <Text strong className="text-sm sm:text-base">
                   {book?.user?.fullName}
@@ -416,7 +425,8 @@ const BookCard = ({ book: initialBook }: IProps) => {
                   type="secondary"
                   className="flex items-center text-xs sm:text-sm break-words"
                 >
-                  <BookOutlined className="mr-1 flex-shrink-0" /> {book.bookFormat}
+                  <BookOutlined className="mr-1 flex-shrink-0" />{" "}
+                  {book.bookFormat}
                 </Text>
 
                 <Text className="flex items-center text-xs sm:text-sm break-words">
@@ -433,7 +443,11 @@ const BookCard = ({ book: initialBook }: IProps) => {
                   <Text className="mr-2 text-xs sm:text-sm">Thể loại:</Text>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {book.categories.map((category) => (
-                      <Tag key={category.id} color="blue" className="mb-1 text-xs">
+                      <Tag
+                        key={category.id}
+                        color="blue"
+                        className="mb-1 text-xs"
+                      >
                         {category.name}
                       </Tag>
                     ))}
