@@ -29,8 +29,8 @@ const LayoutClient = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Layout>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#faf8f6" }}>
+      <Layout style={{ backgroundColor: "#faf8f6" }}>
         <Header />
       </Layout>
 
@@ -51,14 +51,15 @@ const LayoutClient = () => {
           </Sider>
         )}
 
-        <Layout 
-          style={{ 
+        <Layout
+          style={{
             marginLeft: isMobile ? 0 : getSidebarWidth(),
-            paddingBottom: isMobile ? 60 : 0 // Thêm padding bottom cho mobile để không bị che bởi bottom menu
-          }} 
+            paddingBottom: isMobile ? 60 : 0, // Thêm padding bottom cho mobile để không bị che bởi bottom menu
+            backgroundColor: "#faf8f6",
+          }}
           className="client-layout"
         >
-          <Content style={{ padding: "0 24px" }}>
+          <Content style={{ padding: "0 24px", backgroundColor: "#faf8f6" }}>
             <Outlet />
           </Content>
         </Layout>

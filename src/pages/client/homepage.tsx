@@ -199,7 +199,7 @@ const HomePage = () => {
   // }
 
   return (
-    <div className="bg-gray-100 min-h-screen py-6">
+    <div style={{ backgroundColor: "#faf8f6" }} className="min-h-screen py-6">
       <div className="container mx-auto px-4">
         <Spin spinning={loading} size="large">
           <BookList

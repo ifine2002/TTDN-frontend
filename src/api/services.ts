@@ -17,6 +17,7 @@ import {
   IComment,
   IDashboard,
   IUserDetail,
+  INewBook,
 } from "@/types/backend";
 import axios from "./axios";
 
@@ -748,4 +749,10 @@ export const callSearchUser = (query: string) => {
  */
 export const callGetDashboard = () => {
   return axios.get<IBackendRes<IDashboard>>(`/dashboard`);
+};
+
+export const callStatisticsNewBook = (from: string, to: string) => {
+  return axios.get<IBackendRes<INewBook[]>>(
+    `/dashboard/new-books?from=${from}&to=${to}`
+  );
 };

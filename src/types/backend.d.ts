@@ -279,4 +279,9 @@ export interface IDashboard {
   totalReview: number;
 }
 
+export interface INewBook {
+  day: string;
+  newBooks: number;
+}
+
 type SortOrder = "ascend" | "descend";
