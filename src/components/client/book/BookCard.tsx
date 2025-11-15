@@ -439,7 +439,7 @@ const BookCard = ({ book: initialBook }: IProps) => {
               </div>
 
               {book.categories && book.categories.length > 0 && (
-                <div className="mt-3">
+                <div className="mt-3 flex">
                   <Text className="mr-2 text-xs sm:text-sm">Thể loại:</Text>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {book.categories.map((category) => (

@@ -304,7 +304,7 @@ const UploadBookPage = () => {
                     { required: true, message: "Vui lòng chọn ngôn ngữ" },
                   ]}
                 >
-                  <Input placeholder="Language" />
+                  <Input placeholder="Ngôn ngữ" />
                 </Form.Item>
 
                 <Form.Item

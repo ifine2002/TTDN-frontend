@@ -27,17 +27,36 @@ interface ICategoryOption extends ICategory {
 
 type SortType = "newest" | "oldest" | "a-z" | "z-a";
 
+const getCategoriesFromSearch = (search: string) => {
+  const params = new URLSearchParams(search);
+  const categoriesParam = params.get("categories");
+  if (!categoriesParam) return [];
+  return categoriesParam
+    .split(",")
+    .map((s) => {
+      try {
+        return decodeURIComponent(s.trim());
+      } catch {
+        return s.trim();
+      }
+    })
+    .filter(Boolean);
+};
+
 const CollectionPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [bookData, setBookData] = useState<IBookSearch[]>([]);
   const [categories, setCategories] = useState<ICategoryOption[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  // init selectedCategories from URL immediately
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
+    getCategoriesFromSearch(window.location.search || location.search)
+  );
   const [sortType, setSortType] = useState<SortType>("newest");
   const [bookPagination, setBookPagination] = useState<IBookPagination>({
     current: 0,
-    pageSize: 30,
+    pageSize: 20,
     total: 0,
   });
 
@@ -57,6 +76,7 @@ const CollectionPage = () => {
         const filterArray = categoryNames.map((name) =>
           sfLike("categories.name", name)
         );
+        // Lưu ý: backend cần chấp nhận biểu thức nối " or "
         q.filter = filterArray.join(" or ");
       }
 
@@ -84,6 +104,19 @@ const CollectionPage = () => {
     []
   );
 
+  // Sync when location.search changes (e.g. navigate from Explore)
+  useEffect(() => {
+    const cats = getCategoriesFromSearch(location.search);
+    const same =
+      cats.length === selectedCategories.length &&
+      cats.every((c, i) => c === selectedCategories[i]);
+    if (!same) {
+      setSelectedCategories(cats);
+      setBookPagination((prev) => ({ ...prev, current: 0 })); // reset page
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -91,14 +124,22 @@ const CollectionPage = () => {
         const query = buildQuery(bookPagination, selectedCategories, sortType);
         const res = await callGetExploreBooks(query);
         if (res && res.data) {
-          setBookData(res.data.result || []);
+          // backend có thể trả result hoặc content
+          const result = res.data.result ?? [];
+          setBookData(result || []);
           setBookPagination((prev) => ({
             ...prev,
-            total: res.data?.totalElements || 0,
+            total:
+              res.data?.totalElements ??
+              (Array.isArray(result) ? result.length : 0),
           }));
+        } else {
+          setBookData([]);
+          setBookPagination((prev) => ({ ...prev, total: 0 }));
         }
       } catch (error) {
         console.error("Error fetching books:", error);
+        setBookData([]);
       } finally {
         setLoading(false);
       }
@@ -121,28 +162,49 @@ const CollectionPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchCategories();
+
+    // initial parse from URL already done in state initializer
+    // but ensure page reset if there are params
+    const params = new URLSearchParams(location.search);
+    const categoriesParam = params.get("categories");
+    if (categoriesParam) {
+      // setSelectedCategories will be handled by the location.search effect
+      setBookPagination((prev) => ({ ...prev, current: 0 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCategoryChange = (categoryName: string, checked: boolean) => {
     let newSelectedCategories: string[];
     if (checked) {
       newSelectedCategories = [...selectedCategories, categoryName];
-      setSelectedCategories(newSelectedCategories);
     } else {
       newSelectedCategories = selectedCategories.filter(
         (cat) => cat !== categoryName
       );
-      setSelectedCategories(newSelectedCategories);
     }
-    // Reset lại trang về 0 khi filter thay đổi
+
+    // Update state & reset page
+    setSelectedCategories(newSelectedCategories);
     setBookPagination((prev) => ({
       ...prev,
       current: 0,
     }));
-    // Update URL with selected categories
-    const params = new URLSearchParams();
+
+    // Update URL but preserve other params (e.g., sort)
+    const params = new URLSearchParams(location.search);
     if (newSelectedCategories.length > 0) {
       params.set("categories", newSelectedCategories.join(","));
+    } else {
+      params.delete("categories");
     }
-    navigate(`?${params.toString()}`, { replace: true });
+    // Keep sort param if exists (optional)
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { replace: true }
+    );
   };
 
   const handleBookPageChange = (page: number) => {
@@ -150,6 +212,13 @@ const CollectionPage = () => {
       ...prev,
       current: page - 1,
     }));
+    // update URL page param optionally if you want to persist in URL
+    const params = new URLSearchParams(location.search);
+    params.set("page", String(page - 1));
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { replace: true }
+    );
   };
 
   const handleSortChange = (value: SortType) => {
@@ -158,20 +227,14 @@ const CollectionPage = () => {
       ...prev,
       current: 0,
     }));
-  };
-
-  useEffect(() => {
-    fetchCategories();
-
-    // Đọc categories từ URL params
+    // update URL maybe
     const params = new URLSearchParams(location.search);
-    const categoriesParam = params.get("categories");
-    if (categoriesParam) {
-      const categoriesFromUrl = categoriesParam.split(",");
-      setSelectedCategories(categoriesFromUrl);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    params.set("sort", value);
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { replace: true }
+    );
+  };
 
   const sortOptions = [
     { label: "Mới nhất", value: "newest" as SortType },
@@ -182,7 +245,7 @@ const CollectionPage = () => {
 
   return (
     <div className="explore-page explore-page--with-sidebar">
-      <div className="explore-page__title">TÂT CẢ SẢN PHẨM</div>
+      <div className="explore-page__title">TẤT CẢ SẢN PHẨM</div>
 
       <div className="explore-page__main-container">
         {/* Left Sidebar - Categories */}

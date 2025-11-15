@@ -21,11 +21,10 @@ const BANNER_IMAGES = [banner1, banner2, banner3, banner4];
 
 // Danh sách các category sẽ được hiển thị trên trang explore
 const DISPLAYED_CATEGORIES = [
-  "Truyện ngắn",
-  "Tiểu thuyết",
-  "Lịch sử",
-  "Tâm lý học",
+  "Doraemon",
+  "Triết học",
   "Kinh doanh",
+  "Khoa học",
 ];
 
 const ExplorePage = () => {

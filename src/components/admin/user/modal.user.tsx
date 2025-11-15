@@ -56,7 +56,7 @@ interface IUserFormValues {
 
 const ModalUser = (props: IProps) => {
   const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
-  const [roles, setRoles] = useState<IRoleOption[]>([]);
+  const [roles, setRoles] = useState<IRoleOption | null>(null);
   const [fileList, setFileList] = useState<IUploadFileWithOrigin[]>([]);
   const [isDeleteImage, setIsDeleteImage] = useState<boolean>(false);
 
@@ -66,18 +66,19 @@ const ModalUser = (props: IProps) => {
     setIsDeleteImage(false);
 
     if (dataInit?.id) {
-      if (dataInit.role) {
-        setRoles([
-          {
-            label: dataInit.role?.name,
-            value: dataInit.role?.id,
-            key: dataInit.role?.id,
-          },
-        ]);
+      if (dataInit?.id && dataInit.role) {
+        const roleOption = {
+          label: dataInit.role.name,
+          value: dataInit.role.id,
+          key: dataInit.role.id,
+        };
+        setRoles(roleOption);
+        form.setFieldsValue({ role: roleOption });
+      } else {
+        setRoles(null);
       }
       form.setFieldsValue({
         ...dataInit,
-        role: { label: dataInit.role?.name, value: dataInit.role?.id },
       });
 
       if (dataInit.image) {
@@ -214,7 +215,7 @@ const ModalUser = (props: IProps) => {
   const handleReset = async () => {
     form.resetFields();
     setDataInit(null);
-    setRoles([]);
+    setRoles(null);
     setFileList([]);
     setIsDeleteImage(false);
     setOpenModal(false);
@@ -348,9 +349,8 @@ const ModalUser = (props: IProps) => {
                 placeholder="Chọn vai trò"
                 fetchOptions={fetchRoleList}
                 onChange={(newValue: any) => {
-                  if (newValue?.length === 0 || newValue?.length === 1) {
-                    setRoles(newValue);
-                  }
+                  setRoles(newValue ?? null);
+                  form.setFieldsValue({ role: newValue ?? null });
                 }}
                 style={{ width: "100%" }}
               />
