@@ -29,6 +29,7 @@ import ResetPasswordPage from "pages/auth/reset-password";
 import LayoutApp from "components/share/layout.app";
 import HomePage from "pages/client/homepage";
 import MyProfilePage from "@/pages/client/my-profile";
+import CollectionPage from "./pages/client/categories";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -77,6 +78,10 @@ export default function App() {
         {
           path: "/explore",
           element: <ExplorePage />,
+        },
+        {
+          path: "/collection",
+          element: <CollectionPage />,
         },
       ],
     },

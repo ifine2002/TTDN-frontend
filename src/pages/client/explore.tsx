@@ -1,89 +1,85 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SimpleBookCard from "components/client/book/SimpleBookCard";
-import { Empty, Pagination, Input, Select, Spin } from "antd";
+import { Empty, Spin, Carousel } from "antd";
 import queryString from "query-string";
 import { sfLike } from "spring-filter-query-builder";
 import { callGetExploreBooks, callFetchCategoriesUpload } from "api/services";
-import { Subject } from "rxjs";
-import { debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
-import { IBookSearch } from "types/backend";
+import { IBookSearch, ICategory } from "types/backend";
+import banner1 from "assets/banner1.jpg";
+import banner2 from "assets/banner2.jpg";
+import banner3 from "assets/banner3.jpg";
+import banner4 from "assets/banner4.jpg";
 import "styles/explore.scss";
 
-interface IBookPagination {
-  current: number;
-  pageSize: number;
-  total: number;
+interface ICategoryWithBooks extends ICategory {
+  books: IBookSearch[];
 }
 
-interface IFilters {
-  author: string;
-  category?: string;
-}
+// Banner images - sử dụng 3 ảnh từ assets
+const BANNER_IMAGES = [banner1, banner2, banner3, banner4];
 
-interface IQueryParams {
-  page: number;
-  size: number;
-  filter?: string;
-}
-
-interface ICategoryOption {
-  label?: string;
-  value?: string;
-  key?: number;
-}
+// Danh sách các category sẽ được hiển thị trên trang explore
+const DISPLAYED_CATEGORIES = [
+  "Truyện ngắn",
+  "Tiểu thuyết",
+  "Lịch sử",
+  "Tâm lý học",
+  "Kinh doanh",
+];
 
 const ExplorePage = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [bookData, setBookData] = useState<IBookSearch[]>([]);
-  const [categories, setCategories] = useState<ICategoryOption[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [bookPagination, setBookPagination] = useState<IBookPagination>({
-    current: 0,
-    pageSize: 6,
-    total: 0,
-  });
-  const [filters, setFilters] = useState<IFilters>({
-    author: "",
-    category: undefined,
-  });
-
-  // Sử dụng useRef để giữ Subject qua các lần render
-  const authorInputSubject = useRef(new Subject());
+  const [categoriesWithBooks, setCategoriesWithBooks] = useState<
+    ICategoryWithBooks[]
+  >([]);
+  const [topNewBooks, setTopNewBooks] = useState<IBookSearch[]>([]);
 
   const fetchCategories = async () => {
     try {
+      setLoading(true);
       const query = `page=0&size=100&sort=createdAt,desc`;
       const res = await callFetchCategoriesUpload(query);
       if (res && res.data) {
-        const arr =
-          res?.data?.result?.map((item) => {
-            return {
-              label: item.name,
-              value: item.name,
-              key: item.id,
-            };
-          }) ?? [];
-        setCategories(arr);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
+        // Lọc categories theo danh sách được chỉ định
+        const allCategories = res?.data?.result ?? [];
+        const categories = allCategories.filter((cat) =>
+          DISPLAYED_CATEGORIES.includes(cat.name || "")
+        );
 
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const query = buildQuery(bookPagination, filters);
-      const res = await callGetExploreBooks(query);
-      if (res && res.data) {
-        setBookData(res.data.result || []);
-        setBookPagination((prev) => ({
-          ...prev,
-          total: res.data?.totalElements || 0,
-        }));
+        // Fetch top 6 new books
+        const newBooksQuery = queryString.stringify({
+          page: 0,
+          size: 6,
+          sort: "updatedAt,desc",
+        });
+        const booksRes = await callGetExploreBooks(newBooksQuery);
+        if (booksRes && booksRes.data) {
+          setTopNewBooks(booksRes.data.result || []);
+        }
+
+        // Fetch top 6 books for each category
+        const categoriesData = await Promise.all(
+          categories.map(async (category) => {
+            const filterQuery = queryString.stringify({
+              page: 0,
+              size: 6,
+              filter: sfLike("categories.name", category.name || ""),
+              sort: "updatedAt,desc",
+            });
+            const categoryBooksRes = await callGetExploreBooks(filterQuery);
+            return {
+              ...category,
+              books: categoryBooksRes?.data?.result || [],
+            };
+          })
+        );
+
+        setCategoriesWithBooks(categoriesData);
       }
     } catch (error) {
-      console.error("Error fetching books:", error);
+      console.error("Error fetching categories and books:", error);
     } finally {
       setLoading(false);
     }
@@ -93,143 +89,91 @@ const ExplorePage = () => {
     fetchCategories();
   }, []);
 
-  // RxJS search subscription - setup tương tự như header.jsx
-  useEffect(() => {
-    const subscription = authorInputSubject.current
-      .pipe(
-        // Loại bỏ các giá trị không phải chuỗi
-        filter((value) => typeof value === "string"),
-        // Loại bỏ các giá trị trùng lặp
-        distinctUntilChanged(),
-        // Đợi 500ms trước khi cập nhật
-        debounceTime(500)
-      )
-      .subscribe((value) => {
-        setFilters((prev) => ({
-          ...prev,
-          author: value,
-        }));
-        // Reset lại trang về 0 khi filter thay đổi
-        setBookPagination((prev) => ({
-          ...prev,
-          current: 0,
-        }));
-      });
-
-    // Cleanup subscription khi component unmount
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Gọi API khi filters hoặc pagination thay đổi
-  useEffect(() => {
-    fetchBooks();
-  }, [filters, bookPagination.current, bookPagination.pageSize]);
-
-  const handleAuthorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // Cập nhật UI ngay lập tức
-    setInputValue(value);
-
-    // Emit giá trị vào subject để xử lý debounce
-    authorInputSubject.current.next(value);
-  };
-
-  const handleBookPageChange = (page: number) => {
-    setBookPagination((prev) => ({
-      ...prev,
-      current: page - 1,
-    }));
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      category: value,
-    }));
-    setBookPagination((prev) => ({
-      ...prev,
-      current: 0,
-    }));
-  };
-
-  const buildQuery = (params: IBookPagination, filters: IFilters) => {
-    const q: IQueryParams = {
-      page: params.current,
-      size: params.pageSize,
-      filter: "",
-    };
-
-    const filterArray: string[] = [];
-
-    if (filters.author) filterArray.push(`${sfLike("author", filters.author)}`);
-    if (filters.category)
-      filterArray.push(`${sfLike("categories.name", filters.category)}`);
-
-    if (filterArray.length > 0) {
-      q.filter = filterArray.join(" and ");
-    }
-
-    if (!q.filter) delete q.filter;
-    let temp = queryString.stringify(q);
-
-    temp = `${temp}&sort=updatedAt,desc`;
-
-    return temp;
-  };
-
   return (
     <div className="explore-page">
-      <div className="explore-page__title">Khám phá sách</div>
-      <div className="explore-page__filters">
-        <Input
-          placeholder="Tìm theo tác giả"
-          value={inputValue}
-          onChange={handleAuthorChange}
-          className="explore-page__filter-input"
-        />
-        <Select
-          placeholder="Chọn thể loại"
-          value={filters.category}
-          onChange={handleCategoryChange}
-          className="explore-page__filter-select"
-          allowClear
-          options={categories}
-        />
-      </div>
-      <div className="explore-page__content">
-        {loading ? (
+      {loading ? (
+        <div className="explore-page__full-loading">
           <div className="explore-page__loading">
             <Spin size="large" />
           </div>
-        ) : bookData.length === 0 ? (
-          <div className="explore-page__empty">
-            <Empty description="Không tìm thấy sách nào" />
-          </div>
-        ) : (
-          <div className="explore-page__book-grid">
-            {bookData.map((book, index) => (
-              <div
-                key={`${book.id}-${index}`}
-                className="explore-page__book-item"
-              >
-                <SimpleBookCard book={book} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {bookData.length > 0 && (
-        <div className="explore-page__pagination">
-          <Pagination
-            current={bookPagination.current + 1}
-            pageSize={bookPagination.pageSize}
-            total={bookPagination.total}
-            onChange={handleBookPageChange}
-            showSizeChanger={false}
-            responsive
-          />
         </div>
+      ) : (
+        <>
+          {/* Carousel Banner Section */}
+          <div className="explore-page__banner">
+            <Carousel autoplay>
+              {BANNER_IMAGES.map((image, index) => (
+                <div key={index} className="explore-page__banner-slide">
+                  <img
+                    src={image}
+                    alt={`Banner ${index + 1}`}
+                    className="explore-page__banner-image"
+                  />
+                </div>
+              ))}
+            </Carousel>
+          </div>
+
+          {/* Top New Books Section */}
+          {topNewBooks.length > 0 && (
+            <div className="explore-page__section">
+              <div className="explore-page__section-title">Sách mới nhất</div>
+              <div className="explore-page__book-grid">
+                {topNewBooks.map((book, index) => (
+                  <div
+                    key={`top-book-${book.id}-${index}`}
+                    className="explore-page__book-item"
+                  >
+                    <SimpleBookCard book={book} />
+                  </div>
+                ))}
+              </div>
+              <div className="explore-page__view-more">
+                <a onClick={() => navigate("/collection")}>Xem thêm →</a>
+              </div>
+            </div>
+          )}
+
+          {/* Category Books Sections - only first 5 */}
+          {categoriesWithBooks.length > 0 ? (
+            categoriesWithBooks.map((category) =>
+              category.books && category.books.length > 0 ? (
+                <div key={category.id} className="explore-page__section">
+                  <div className="explore-page__section-title">
+                    {category.name}
+                  </div>
+                  <div className="explore-page__book-grid">
+                    {category.books.map((book, index) => (
+                      <div
+                        key={`${category.id}-book-${book.id}-${index}`}
+                        className="explore-page__book-item"
+                      >
+                        <SimpleBookCard book={book} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="explore-page__view-more">
+                    <a
+                      onClick={() =>
+                        navigate(
+                          `/collection?categories=${encodeURIComponent(
+                            category.name || ""
+                          )}`
+                        )
+                      }
+                    >
+                      Xem thêm →
+                    </a>
+                  </div>
+                </div>
+              ) : null
+            )
+          ) : (
+            <div className="explore-page__empty">
+              <Empty description="Không tìm thấy sách nào" />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
